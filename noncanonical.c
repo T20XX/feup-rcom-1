@@ -18,6 +18,7 @@ int main(int argc, char** argv)
     int fd,c, res;
     struct termios oldtio,newtio;
     char buf[255];
+	char msg[500];
 
     if ( (argc < 2) || 
   	     ((strcmp("/dev/ttyS0", argv[1])!=0) && 
@@ -69,19 +70,21 @@ int main(int argc, char** argv)
     }
 
     printf("New termios structure set\n");
-
-
+	
+	msg[0] = 0;
     while (STOP==FALSE) {       /* loop for input */
-      res = read(fd,buf,1);   /* returns after 5 chars have been input */
+      res = read(fd,buf,1);   /* returns after 1 char have been input */
       buf[res]=0;               /* so we can printf... */
-      //printf(":%s:%d\n", buf, res);
 	printf("%s", buf, res);
-      if (buf[0]=='\0'){
-printf("\n", buf, res);
-STOP=TRUE;
-}
+	strcat(msg,buf);
+    if (buf[0]=='\0'){
+		printf("\n", buf, res);
+	int tam = strlen(msg)+1;
+	int n;
+	n = write(fd,msg,tam);
+		STOP=TRUE;
+	}
     }
-
 
 
   /* 
