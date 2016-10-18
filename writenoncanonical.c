@@ -16,17 +16,23 @@ volatile int STOP=FALSE;
 
 int main(int argc, char** argv)
 {
-    int fd,c, res;
+    int fd, c, res, id;
     struct termios oldtio,newtio;
     char buf[255];
     int i, sum = 0, speed = 0;
+	struct stat fileInfo;
     
-    if ( (argc < 2) || 
+    if ( (argc < 3) || 
   	     ((strcmp("/dev/ttyS0", argv[1])!=0) && 
   	      (strcmp("/dev/ttyS1", argv[1])!=0) )) {
-      printf("Usage:\tnserial SerialPort\n\tex: nserial /dev/ttyS1\n");
+      printf("Usage:\tnserial SerialPort FilePath\n\tex: nserial /dev/ttyS1 ./image.jpg\n");
       exit(1);
     }
+
+	if ( (id = open (argv[2] , O_RDONLY)) < 0){
+		perror(argv[2]);
+		exit(2);
+	}
 
 
   /*
@@ -73,6 +79,15 @@ int main(int argc, char** argv)
     printf("New termios structure set\n");
 
 
+	struct dirent *dp;
+
+	stat(argv[2], &fileInfo);
+	printf("%d\n", fileInfo.st_size);
+	printf("%d\n", sizeof(fileInfo.st_mode));
+
+	/*fileSize = lseek(id, 0, SEEK_END);
+	printf("%i\n",fileSize);
+	lseek(id, 0, SEEK_SET);*/
 
     /*for (i = 0; i < 255; i++) {
       buf[i] = 'a';
