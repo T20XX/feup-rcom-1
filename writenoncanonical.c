@@ -80,11 +80,46 @@ int main(int argc, char** argv)
 
 
 	struct dirent *dp;
+	char per[10];
+	char * startPacket;
 
+	//SIZE
 	stat(argv[2], &fileInfo);
 	printf("%d\n", fileInfo.st_size);
 	printf("%d\n", sizeof(fileInfo.st_mode));
 
+	//PERMISSIONS
+	if ( fileInfo.st_mode & S_IRUSR ) per[0] = 'r';    /* 3 bits for user  */
+	if ( fileInfo.st_mode & S_IWUSR ) per[1] = 'w';
+	if ( fileInfo.st_mode & S_IXUSR ) per[2] = 'x';
+
+	if ( fileInfo.st_mode & S_IRGRP ) per[3] = 'r';    /* 3 bits for group */
+	if ( fileInfo.st_mode & S_IWGRP ) per[4] = 'w';
+	if ( fileInfo.st_mode & S_IXGRP ) per[5] = 'x';
+
+	if ( fileInfo.st_mode & S_IROTH ) per[6] = 'r';    /* 3 bits for other */
+	if ( fileInfo.st_mode & S_IWOTH ) per[7] = 'w';
+	if ( fileInfo.st_mode & S_IXOTH ) per[8] = 'x';
+
+	printf("%s\n", per);
+
+	startPacket = malloc(sizeof(argv[2]) + 4 + 10 + 7 + 1);
+	startPacket[0] = 2;
+	startPacket[1] = 0;
+	startPacket[2] = 4;
+	startPacket[3] = fileInfo.st_size & 0xFF000000 >> 24;
+	startPacket[4] = fileInfo.st_size & 0x00FF0000 >> 16;
+	startPacket[5] = fileInfo.st_size & 0x0000FF00 >> 8;
+	startPacket[6] = fileInfo.st_size & 0x000000FF;
+	startPacket[7] = 1;
+	startPacket[8] = sizeof(argv[2]);
+	startPacket[9] = argv[2];
+	//startPacket[9 + sizeof(argv[2]) + 1] = 2;
+	//startPacket[9 + sizeof(argv[2]) + 2] = 10;
+	//startPacket[9 + sizeof(argv[2]) + 3] = per;
+
+	printf("%x\n", startPacket[4]);
+	
 	/*fileSize = lseek(id, 0, SEEK_END);
 	printf("%i\n",fileSize);
 	lseek(id, 0, SEEK_SET);*/
