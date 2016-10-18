@@ -19,7 +19,6 @@ int main(int argc, char** argv)
     int fd,c, res;
     struct termios oldtio,newtio;
     char buf[255];
-	char buf2[255];
     int i, sum = 0, speed = 0;
     
     if ( (argc < 2) || 
@@ -82,21 +81,34 @@ int main(int argc, char** argv)
     /*testing*/
     buf[25] = '\n';
 
-    gets(buf);
+    	gets(buf);
 	int tam = strlen(buf)+1;
 	int n;
 	n = write(fd,buf,tam);
 
-	buf2[25] = '\n';
-	while (STOP==FALSE) {       // loop for input 
-    	res = read(fd,buf2,1);   //returns after 1 char have been input 
-    	buf2[res]=0;                //so we can printf... 
-		printf("%s", buf2, res);
-      	if (buf2[0]=='\0'){
-			printf("\n", buf2, res);
-			STOP=TRUE;
+	/*
+	while(len > nw){
+		n = write(fd,buf+nw,tam-nw);
+		if(!n){
+			break;
 		}
-    }
+	nw += n;		
+	}
+	
+	if(nw < tam){
+	perror("ups");	
+	}*/
+
+
+    
+    //res = write(fd,buf,255);   
+    //printf("%d bytes written\n", nw);
+ 
+    
+  /* 
+    O ciclo FOR e as instruções seguintes devem ser alterados de modo a respeitar 
+    o indicado no guião 
+  */
 	
 
 
