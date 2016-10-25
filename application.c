@@ -1,6 +1,9 @@
+#include <stdlib.h>
+#include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <unistd.h>
 #include <termios.h>
 #include <stdio.h>
 #include "application.h"
@@ -104,10 +107,12 @@ int llwrite(const char *file){
   startPacket[8] = sizeof(file);
   memcpy(&startPacket[9], file, sizeof(file) + 1);
 
+  return 0;
+
 }
 
 int llread(){
-  
+  return 0;
 }
 
 int llclose(){
