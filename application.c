@@ -12,9 +12,7 @@
 struct termios oldtio,newtio;
 
 int llopen(const char *port, int status){
-  int fd, c, res, id;
-  char buf[255];
-  int i, sum = 0, speed = 0;
+  int fd;
 
   /*
   Open serial port device for reading and writing and not as controlling tty
@@ -61,7 +59,7 @@ int llopen(const char *port, int status){
 int llwrite(const char *file){
   struct stat fileInfo;
 
-  struct dirent *dp;
+  //struct dirent *dp;
   char per[10];
   char * startPacket;
   int id;
@@ -73,8 +71,8 @@ int llwrite(const char *file){
 
   //SIZE
   stat(file, &fileInfo);
-  printf("%d\n", fileInfo.st_size);
-  printf("%d\n", sizeof(fileInfo.st_mode));
+  printf("%ld\n", fileInfo.st_size);
+  printf("%ld\n", sizeof(fileInfo.st_mode));
 
   //PERMISSIONS
   if ( fileInfo.st_mode & S_IRUSR ) per[0] = 'r';    /* 3 bits for user  */
@@ -92,7 +90,7 @@ int llwrite(const char *file){
   printf("%s\n", per);
 
   startPacket = malloc(sizeof(file) + 4 + 10 + 7 + 1);
-  char *pointer = startPacket;
+  //char *pointer = startPacket;
   startPacket[0] = 2;
   startPacket[1] = T_SIZE;
   startPacket[2] = 4;
@@ -102,7 +100,7 @@ int llwrite(const char *file){
   startPacket[5] = (fileInfo.st_size & 0x0000FF00) >> 8;
   startPacket[6] = (fileInfo.st_size & 0x000000FF);
   printf("%x:%x:%x:%x\n", startPacket[3], startPacket[4], startPacket[5], startPacket[6] & 0xff);
-  printf("%x\n", fileInfo.st_size);
+  printf("%lx\n", fileInfo.st_size);
   startPacket[7] = T_NAME;
   startPacket[8] = sizeof(file);
   memcpy(&startPacket[9], file, sizeof(file) + 1);
