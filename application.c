@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include "application.h"
 #include "dataLink.h"
+#include "utils.h"
 
 struct termios oldtio,newtio;
 

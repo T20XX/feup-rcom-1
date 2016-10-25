@@ -5,8 +5,29 @@
 #include <termios.h>
 #include <stdio.h>
 #include "dataLink.h"
+#include "utils.h"
+
+int transmitterOpenProtocol();
+int receiverOpenProtocol();
 
 int openProtocol(int status){
+  if (status == TRANSMITTER){
+    return transmitterOpenProtocol();
+  }else if (status == RECEIVER){
+    return receiverOpenProtocol();
+  } else {
+    return -1;
+  }
+  return 0;
+}
+
+int transmitterOpenProtocol(){
+
+  return 0;
+}
+
+int receiverOpenProtocol(){
+
   return 0;
 }
 

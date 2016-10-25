@@ -6,15 +6,6 @@ struct applicationLayer {
   int status; /*TRANSMITTER | RECEIVER*/
 };
 
-#define BAUDRATE B9600
-#define MODEMDEVICE "/dev/ttyS1"
-#define _POSIX_SOURCE 1 /* POSIX compliant source */
-#define FALSE 0
-#define TRUE 1
-
-#define TRANSMITTER 0
-#define RECEIVER 1
-
 #define T_SIZE 0
 #define T_NAME 1
 #define T_DATE 2
