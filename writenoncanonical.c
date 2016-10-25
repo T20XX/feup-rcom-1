@@ -11,6 +11,10 @@
 #define _POSIX_SOURCE 1 /* POSIX compliant source */
 #define FALSE 0
 #define TRUE 1
+#define T_SIZE 0
+#define T_NAME 1
+#define T_DATE 2
+#define T_PERMISSIONS 3
 
 volatile int STOP=FALSE;
 
@@ -21,9 +25,9 @@ int main(int argc, char** argv)
     char buf[255];
     int i, sum = 0, speed = 0;
 	struct stat fileInfo;
-    
-    if ( (argc < 3) || 
-  	     ((strcmp("/dev/ttyS0", argv[1])!=0) && 
+
+    if ( (argc < 3) ||
+  	     ((strcmp("/dev/ttyS0", argv[1])!=0) &&
   	      (strcmp("/dev/ttyS1", argv[1])!=0) )) {
       printf("Usage:\tnserial SerialPort FilePath\n\tex: nserial /dev/ttyS1 ./image.jpg\n");
       exit(1);
@@ -62,9 +66,9 @@ int main(int argc, char** argv)
 
 
 
-  /* 
-    VTIME e VMIN devem ser alterados de forma a proteger com um temporizador a 
-    leitura do(s) próximo(s) caracter(es)
+  /*
+    VTIME e VMIN devem ser alterados de forma a proteger com um temporizador a
+    leitura do(s) prï¿½ximo(s) caracter(es)
   */
 
 
@@ -104,22 +108,24 @@ int main(int argc, char** argv)
 	printf("%s\n", per);
 
 	startPacket = malloc(sizeof(argv[2]) + 4 + 10 + 7 + 1);
+  char *pointer = startPacket;
 	startPacket[0] = 2;
-	startPacket[1] = 0;
+	startPacket[1] = T_SIZE;
 	startPacket[2] = 4;
-	startPacket[3] = fileInfo.st_size & 0xFF000000 >> 24;
-	startPacket[4] = fileInfo.st_size & 0x00FF0000 >> 16;
-	startPacket[5] = fileInfo.st_size & 0x0000FF00 >> 8;
-	startPacket[6] = fileInfo.st_size & 0x000000FF;
-	startPacket[7] = 1;
+  //memcpy(startPacket[3], &fileInfo.st_size, sizeof(fileInfo.st_size));
+	startPacket[3] = (fileInfo.st_size & 0xFF000000) >> 24;
+	startPacket[4] = (fileInfo.st_size & 0x00FF0000) >> 16;
+	startPacket[5] = (fileInfo.st_size & 0x0000FF00) >> 8;
+	startPacket[6] = (fileInfo.st_size & 0x000000FF);
+  printf("%x:%x:%x:%x\n", startPacket[3], startPacket[4], startPacket[5], startPacket[6] & 0xff);
+  printf("%x\n", fileInfo.st_size);
+	startPacket[7] = T_NAME;
 	startPacket[8] = sizeof(argv[2]);
-	startPacket[9] = argv[2];
+  memcpy(&startPacket[9], argv[2], sizeof(argv[2]) + 1);
 	//startPacket[9 + sizeof(argv[2]) + 1] = 2;
 	//startPacket[9 + sizeof(argv[2]) + 2] = 10;
 	//startPacket[9 + sizeof(argv[2]) + 3] = per;
 
-	printf("%x\n", startPacket[4]);
-	
 	/*fileSize = lseek(id, 0, SEEK_END);
 	printf("%i\n",fileSize);
 	lseek(id, 0, SEEK_SET);*/
@@ -127,7 +133,7 @@ int main(int argc, char** argv)
     /*for (i = 0; i < 255; i++) {
       buf[i] = 'a';
     }*/
-    
+
     /*testing*/
     buf[25] = '\n';
 
@@ -142,28 +148,28 @@ int main(int argc, char** argv)
 		if(!n){
 			break;
 		}
-	nw += n;		
+	nw += n;
 	}
-	
+
 	if(nw < tam){
-	perror("ups");	
+	perror("ups");
 	}*/
 
 
-    
-    //res = write(fd,buf,255);   
+
+    //res = write(fd,buf,255);
     //printf("%d bytes written\n", nw);
- 
-    
-  /* 
-    O ciclo FOR e as instruções seguintes devem ser alterados de modo a respeitar 
-    o indicado no guião 
+
+
+  /*
+    O ciclo FOR e as instruï¿½ï¿½es seguintes devem ser alterados de modo a respeitar
+    o indicado no guiï¿½o
   */
-	
 
 
 
-   
+
+
     if ( tcsetattr(fd,TCSANOW,&oldtio) == -1) {
       perror("tcsetattr");
       exit(-1);
