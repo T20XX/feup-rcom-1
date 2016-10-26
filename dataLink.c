@@ -6,10 +6,12 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
+#include <signal.h>
 #include "dataLink.h"
 
 typedef enum { START_RCV, FLAG_RCV, A_RCV, C_RCV, BCC_OK, STOP_RCV } CommandState;
 typedef enum { SET, UA_SENDER, UA_RECEIVER, DISC_SENDER, DISC_RECEIVER } CommandType;
+typedef enum { RECEIVING_SET, RECEIVING_DATA, RECEIVING_DISC, RECEIVING_UA }ReceiverState;
 
 
 const unsigned int COMMAND_LENGTH = 5;
@@ -18,6 +20,15 @@ const unsigned char UA_SENDER_FRAME[] = {FLAG, A_SENDER, C_UA, A_SENDER^C_UA, FL
 const unsigned char UA_RECEIVER_FRAME[] = {FLAG, A_RECEIVER, C_UA, A_RECEIVER^C_UA, FLAG};
 const unsigned char DISC_SENDER_FRAME[] = {FLAG, A_SENDER, C_DISC, A_SENDER^C_DISC, FLAG};
 const unsigned char DISC_RECEIVER_FRAME[] = {FLAG, A_RECEIVER, C_DISC, A_RECEIVER^C_DISC, FLAG};
+
+int timeout = FALSE;
+int numTransmissions = 0;
+
+void handleTimeout()
+{
+	timeout = TRUE;
+
+}
 
 
 int transmitterOpenProtocol(int fd);
@@ -33,6 +44,7 @@ int openProtocol(struct applicationLayer app){
   linkInfo.numTransmissions = N_TRIES;
 
   if (app.status == TRANSMITTER){
+	(void) signal(SIGALRM, handleTimeout);
     return transmitterOpenProtocol(app.fileDescriptor);
   }else if (app.status == RECEIVER){
     return receiverOpenProtocol(app.fileDescriptor);
@@ -42,58 +54,30 @@ int openProtocol(struct applicationLayer app){
 }
 
 int transmitterOpenProtocol(int fd){
-  printf("vou escrever");
-	write(fd,SET_FRAME,sizeof(SET_FRAME));
-  printf("vou ler");
-  readFrame(fd, linkInfo.frame, TRANSMITTER);
-  printf("%x:%x:%x:%x:%x\n", linkInfo.frame[0], linkInfo.frame[1], linkInfo.frame[2], linkInfo.frame[3], linkInfo.frame[4]);
-  // olatile int STOP=FALSE;
-  // char buf[255];
-	// char msg[500];
-  // int  res;
-  //
-  //
-  // msg[0] = 0;
-  //   while (STOP==FALSE) {       /* loop for input */
-  //     res = read(fd,buf,1);   /* returns after 1 char have been input */
-  //     buf[res]=0;               /* so we can printf... */
-	// printf("%s", buf, res);
-	// strcat(msg,buf);
-  //   if (buf[0]=='\0'){
-	// 	printf("\n", buf, res);
-	// int tam = strlen(msg)+1;
-	// int n;
-	// n = write(fd,msg,tam);
-	// 	STOP=TRUE;
-	// }
-  //   }
-  return 0;
+	numTransmissions = 0;
+  do{
+printf("WRITING SET\n");
+  write(fd,SET_FRAME,sizeof(SET_FRAME));
+	timeout = FALSE;
+	numTransmissions++;
+	alarm(linkInfo.timeout);
+  printf("WAITING UA\n");
+  }while(readFrame(fd, linkInfo.frame, TRANSMITTER) < 0 && numTransmissions < linkInfo.numTransmissions);
+	
+	if (numTransmissions >= linkInfo.numTransmissions){
+		printf("The connection with receiver could not be established.");
+		return -1;
+	} else {
+  		printf("%x:%x:%x:%x:%x\n", linkInfo.frame[0], linkInfo.frame[1], linkInfo.frame[2], linkInfo.frame[3], linkInfo.frame[4]);
+  		return 0;
+	}
 }
 
 int receiverOpenProtocol(int fd){
-  printf("vou ler");
-  // volatile int STOP=FALSE;
-  // char buf[255];
-  // char msg[500];
-  // int  res;
-  //
-  // msg[0] = 0;
-  // while (STOP==FALSE) {       /* loop for input */
-  //   res = read(fd,buf,1);   /* returns after 1 char have been input */
-  //   buf[res]=0;               /* so we can printf... */
-  //   printf("%s", buf, res);
-  //   strcat(msg,buf);
-  //   if (buf[0]=='\0'){
-  //     printf("\n", buf, res);
-  //     int tam = strlen(msg)+1;
-  //     int n = write(fd,msg,tam);
-  //     STOP=TRUE;
-  //   }
-  // }
+  printf("WAITING SET\n");
   readFrame(fd, linkInfo.frame, RECEIVER);
   printf("%x:%x:%x:%x:%x\n", linkInfo.frame[0], linkInfo.frame[1], linkInfo.frame[2], linkInfo.frame[3], linkInfo.frame[4]);
-//sleep(5);
-  printf("vou escrever");
+  printf("WRITING UA\n");
   write(fd,UA_RECEIVER_FRAME,sizeof(UA_RECEIVER_FRAME));
   return 0;
 }
@@ -118,7 +102,7 @@ int closeProtocol(struct applicationLayer app){
 }
 
 int transmitterCloseProtocol(int fd){
-  printf("vou escrever");
+  printf("WRITING DISC\n");
   write(fd,DISC_SENDER_FRAME,sizeof(DISC_SENDER_FRAME));
   printf("vou ler");
   readFrame(fd, linkInfo.frame, TRANSMITTER);
@@ -203,6 +187,8 @@ int readFrame(int fd, char *frame, int status) {
                 default:
                         break;
                 }
+
+		if (timeout == TRUE ) return -1;
         }
 
         return i;
