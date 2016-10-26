@@ -118,7 +118,7 @@ int llread(){
 }
 
 int llclose(){
-  closeProtocol(app.status);
+  closeProtocol(app);
 
   if ( tcsetattr(app.fileDescriptor,TCSANOW,&oldtio) == -1) {
     perror("tcsetattr");

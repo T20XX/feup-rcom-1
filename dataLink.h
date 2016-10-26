@@ -39,6 +39,6 @@ int dataWrite(char *packet);
 
 int dataRead(char *packet);
 
-int closeProtocol(int status);
+int closeProtocol(struct applicationLayer app);
 
 #endif
