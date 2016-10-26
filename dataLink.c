@@ -22,6 +22,8 @@ const unsigned char DISC_RECEIVER_FRAME[] = {FLAG, A_RECEIVER, C_DISC, A_RECEIVE
 
 int transmitterOpenProtocol(int fd);
 int receiverOpenProtocol(int fd);
+int receiverCloseProtocol(int fd);
+int transmitterCloseProtocol(int fd);
 int readFrame(int fd, char *frame, int status);
 
 int openProtocol(struct applicationLayer app){
@@ -104,7 +106,14 @@ int dataRead(char *packet){
   return 0;
 }
 
-int closeProtocol(int status){
+int closeProtocol(struct applicationLayer app){
+  if (app.status == TRANSMITTER){
+    return transmitterCloseProtocol(app.fileDescriptor);
+  }else if (app.status == RECEIVER){
+    return receiverCloseProtocol(app.fileDescriptor);
+  } else {
+    return -1;
+  }
   return 0;
 }
 
@@ -116,6 +125,18 @@ int transmitterCloseProtocol(int fd){
   printf("%x:%x:%x:%x:%x\n", linkInfo.frame[0], linkInfo.frame[1], linkInfo.frame[2], linkInfo.frame[3], linkInfo.frame[4]);
   printf("vou escrever");
   write(fd,UA_SENDER_FRAME,sizeof(UA_SENDER_FRAME));
+  return 0;
+}
+
+int receiverCloseProtocol(int fd){
+  printf("vou ler");
+  readFrame(fd, linkInfo.frame, RECEIVER);
+  printf("%x:%x:%x:%x:%x\n", linkInfo.frame[0], linkInfo.frame[1], linkInfo.frame[2], linkInfo.frame[3], linkInfo.frame[4]);
+  printf("vou escrever");
+  write(fd,DISC_RECEIVER_FRAME,sizeof(DISC_RECEIVER_FRAME));
+  printf("vou ler");
+  readFrame(fd, linkInfo.frame, RECEIVER);
+  printf("%x:%x:%x:%x:%x\n", linkInfo.frame[0], linkInfo.frame[1], linkInfo.frame[2], linkInfo.frame[3], linkInfo.frame[4]);
   return 0;
 }
 
