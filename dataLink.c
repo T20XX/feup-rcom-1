@@ -128,7 +128,7 @@ int readFrame(int fd, char *frame, int status) {
                         break;
 
                 case FLAG_RCV:
-                        if (status == RECEIVER && byte == A_SENDER || status == TRANSMITTER byte == A_RECEIVER) {
+                        if ((status == RECEIVER && byte == A_SENDER) || (status == TRANSMITTER && byte == A_RECEIVER)) {
                                 frame[i++] = byte;
                                 state = A_RCV;
                         }

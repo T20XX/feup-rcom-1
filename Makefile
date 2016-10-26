@@ -1,7 +1,7 @@
 CC = gcc
 CFLAGS = -lm -Wall
 
-all: write read
+all: clean write read
 
 write: dataLink.h application.h utils.h writenoncanonical.c
 			$(CC) writenoncanonical.c dataLink.c application.c -o write $(CFLAGS)
