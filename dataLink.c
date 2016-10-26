@@ -22,7 +22,7 @@ const unsigned char DISC_RECEIVER_FRAME[] = {FLAG, A_RECEIVER, C_DISC, A_RECEIVE
 
 int transmitterOpenProtocol(int fd);
 int receiverOpenProtocol(int fd);
-int readFrame(int fd, char *frame);
+int readFrame(int fd, char *frame, int status);
 
 int openProtocol(struct applicationLayer app){
   linkInfo.baudRate = BAUDRATE;
@@ -42,8 +42,9 @@ int openProtocol(struct applicationLayer app){
 int transmitterOpenProtocol(int fd){
   printf("vou escrever");
 	write(fd,SET_FRAME,sizeof(SET_FRAME));
-  //printf("vou ler");
-  //readFrame(fd, linkInfo.frame);
+  printf("vou ler");
+  readFrame(fd, linkInfo.frame, TRANSMITTER);
+  printf("%x:%x:%x:%x:%x\n", linkInfo.frame[0], linkInfo.frame[1], linkInfo.frame[2], linkInfo.frame[3], linkInfo.frame[4]);
   // olatile int STOP=FALSE;
   // char buf[255];
 	// char msg[500];
@@ -87,10 +88,11 @@ int receiverOpenProtocol(int fd){
   //     STOP=TRUE;
   //   }
   // }
-  readFrame(fd, linkInfo.frame);
+  readFrame(fd, linkInfo.frame, RECEIVER);
   printf("%x:%x:%x:%x:%x\n", linkInfo.frame[0], linkInfo.frame[1], linkInfo.frame[2], linkInfo.frame[3], linkInfo.frame[4]);
-  //printf("vou escrever");
-  //write(fd,UA_RECEIVER_FRAME,sizeof(UA_RECEIVER_FRAME));
+//sleep(5);
+  printf("vou escrever");
+  write(fd,UA_RECEIVER_FRAME,sizeof(UA_RECEIVER_FRAME));
   return 0;
 }
 
@@ -106,7 +108,7 @@ int closeProtocol(int status){
   return 0;
 }
 
-int readFrame(int fd, char *frame) {
+int readFrame(int fd, char *frame, int status) {
         int i;
         unsigned char byte;
         CommandState state;
@@ -126,7 +128,7 @@ int readFrame(int fd, char *frame) {
                         break;
 
                 case FLAG_RCV:
-                        if (byte == A_SENDER) {
+                        if (status == RECEIVER && byte == A_SENDER || status == TRANSMITTER byte == A_RECEIVER) {
                                 frame[i++] = byte;
                                 state = A_RCV;
                         }
