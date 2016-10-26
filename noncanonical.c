@@ -6,10 +6,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include "application.h"
-#include "utils.h"
 
-int main(int argc, char** argv)
-{
+int main(int argc, char** argv){
     if ( (argc < 2) ||
   	     ((strcmp("/dev/ttyS0", argv[1])!=0) &&
   	      (strcmp("/dev/ttyS1", argv[1])!=0) )) {

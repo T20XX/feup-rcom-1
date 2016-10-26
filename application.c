@@ -49,7 +49,7 @@ int llopen(const char *port, int status){
 
   printf("New termios structure set\n");
 
-  if (openProtocol(status) < 0){
+  if (openProtocol(app) < 0){
     perror("Failed to establish connection");
     exit(-1);
   }

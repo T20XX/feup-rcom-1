@@ -1,10 +1,14 @@
 #ifndef APPLICATION_H
 #define APPLICATION_H
 
+
 struct applicationLayer {
   int fileDescriptor; /*Descritor correspondente à porta série*/
   int status; /*TRANSMITTER | RECEIVER*/
 };
+
+#define TRANSMITTER 0
+#define RECEIVER 1
 
 #define T_SIZE 0
 #define T_NAME 1

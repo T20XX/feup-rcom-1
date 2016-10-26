@@ -1,6 +1,9 @@
 #ifndef DATALINK_H
 #define DATALINK_H
 
+#include "application.h"
+
+
 #define FLAG          0x7E
 #define A_SENDER      0x03
 #define A_RECEIVER    0x01
@@ -12,17 +15,25 @@
 #define ESCAPE        0x7D
 #define STUFF_BYTE    0x20
 
-typedef enum { START_RCV, FLAG_RCV, A_RCV, C_RCV, BCC_OK, STOP_RCV } CommandState;
-typedef enum { SET, UA_SENDER, UA_RECEIVER, DISC_SENDER, DISC_RECEIVER } CommandType;
+#define FALSE 0
+#define TRUE 1
 
-const unsigned int COMMAND_LENGTH = 5;
-const unsigned char SET_FRAME[] = {FLAG, A_SENDER, C_SET, A_SENDER^C_SET, FLAG};
-const unsigned char UA_SENDER_FRAME[] = {FLAG, A_SENDER, C_UA, A_SENDER^C_UA, FLAG};
-const unsigned char UA_RECEIVER_FRAME[] = {FLAG, A_RECEIVER, C_UA, A_RECEIVER^C_UA, FLAG};
-const unsigned char DISC_SENDER_FRAME[] = {FLAG, A_SENDER, C_DISC, A_SENDER^C_DISC, FLAG};
-const unsigned char DISC_RECEIVER_FRAME[] = {FLAG, A_RECEIVER, C_DISC, A_RECEIVER^C_DISC, FLAG};
+#define BAUDRATE      B9600
+#define MAX_SIZE      256
+#define N_TRIES       5
+#define TIMEOUT       3
 
-int openProtocol(int status);
+struct linkLayer {
+int baudRate;/*Velocidade de transmissão*/
+unsigned int sequenceNumber;   /*Número de sequência da trama: 0, 1*/
+unsigned int timeout;/*Valor do temporizador: 1 s*/
+unsigned int numTransmissions; /*Número de tentativas em caso defalha*/
+char frame[MAX_SIZE];/*Trama*/
+};
+
+struct linkLayer linkInfo;
+
+int openProtocol(struct applicationLayer app);
 
 int dataWrite(char *packet);
 
