@@ -108,6 +108,17 @@ int closeProtocol(int status){
   return 0;
 }
 
+int transmitterCloseProtocol(int fd){
+  printf("vou escrever");
+  write(fd,DISC_SENDER_FRAME,sizeof(DISC_SENDER_FRAME));
+  printf("vou ler");
+  readFrame(fd, linkInfo.frame, TRANSMITTER);
+  printf("%x:%x:%x:%x:%x\n", linkInfo.frame[0], linkInfo.frame[1], linkInfo.frame[2], linkInfo.frame[3], linkInfo.frame[4]);
+  printf("vou escrever");
+  write(fd,UA_SENDER_FRAME,sizeof(UA_SENDER_FRAME));
+  return 0;
+}
+
 int readFrame(int fd, char *frame, int status) {
         int i;
         unsigned char byte;
