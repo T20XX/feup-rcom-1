@@ -29,10 +29,10 @@ int main(int argc, char** argv)
 		exit(3);
   }
 
-  if (llwrite(argv[2]) < 0){
-    perror("llwrite");
-		exit(4);
-  }
+  // if (llwrite(argv[2]) < 0){
+  //   perror("llwrite");
+	// 	exit(4);
+  // }
 
   if (llclose() < 0){
     perror("llclose");

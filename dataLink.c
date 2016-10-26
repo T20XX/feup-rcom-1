@@ -40,8 +40,10 @@ int openProtocol(struct applicationLayer app){
 }
 
 int transmitterOpenProtocol(int fd){
+  printf("vou escrever");
 	write(fd,SET_FRAME,sizeof(SET_FRAME));
-  readFrame(fd, linkInfo.frame);
+  //printf("vou ler");
+  //readFrame(fd, linkInfo.frame);
   // olatile int STOP=FALSE;
   // char buf[255];
 	// char msg[500];
@@ -66,6 +68,7 @@ int transmitterOpenProtocol(int fd){
 }
 
 int receiverOpenProtocol(int fd){
+  printf("vou ler");
   // volatile int STOP=FALSE;
   // char buf[255];
   // char msg[500];
@@ -85,7 +88,9 @@ int receiverOpenProtocol(int fd){
   //   }
   // }
   readFrame(fd, linkInfo.frame);
-  write(fd,UA_RECEIVER_FRAME,sizeof(SET_FRAME));
+  printf("%x:%x:%x:%x:%x\n", linkInfo.frame[0], linkInfo.frame[1], linkInfo.frame[2], linkInfo.frame[3], linkInfo.frame[4]);
+  //printf("vou escrever");
+  //write(fd,UA_RECEIVER_FRAME,sizeof(UA_RECEIVER_FRAME));
   return 0;
 }
 

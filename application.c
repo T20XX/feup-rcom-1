@@ -46,6 +46,9 @@ int llopen(const char *port, int status){
     perror("tcsetattr");
     exit(-1);
   }
+  app.fileDescriptor = fd;
+  app.status = status;
+
 
   printf("New termios structure set\n");
 

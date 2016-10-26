@@ -20,10 +20,10 @@ int main(int argc, char** argv){
   		exit(3);
     }
 
-    if (llread() < 0){
-      perror("llread");
-  		exit(4);
-    }
+    // if (llread() < 0){
+    //   perror("llread");
+  	// 	exit(4);
+    // }
 
     if (llclose() < 0){
       perror("llclose");
