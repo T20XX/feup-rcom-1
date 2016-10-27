@@ -34,8 +34,13 @@ int llopen(const char *port, int status){
 
   /* set input mode (non-canonical, no echo,...) */
   newtio.c_lflag = 0;
+	if (status == TRANSMITTER){
   newtio.c_cc[VTIME]    = 0;   /* inter-character timer unused */
+  newtio.c_cc[VMIN]     = 0;   /* blocking read until 5 chars received */
+	} else if (status == RECEIVER){
+	newtio.c_cc[VTIME]    = 0;   /* inter-character timer unused */
   newtio.c_cc[VMIN]     = 1;   /* blocking read until 5 chars received */
+	}
 
   /*
   VTIME e VMIN devem ser alterados de forma a proteger com um temporizador a

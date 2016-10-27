@@ -11,7 +11,7 @@
 
 typedef enum { START_RCV, FLAG_RCV, A_RCV, C_RCV, BCC_OK, STOP_RCV } CommandState;
 typedef enum { SET, UA_SENDER, UA_RECEIVER, DISC_SENDER, DISC_RECEIVER } CommandType;
-typedef enum { RECEIVING_SET, RECEIVING_DATA, RECEIVING_DISC, RECEIVING_UA }ReceiverState;
+typedef enum { RECEIVING_SET, RECEIVING_DATA, RECEIVING_DISC, RECEIVING_UA, RECEIVING_DONE }ReceiverState;
 
 
 const unsigned int COMMAND_LENGTH = 5;
@@ -24,10 +24,19 @@ const unsigned char DISC_RECEIVER_FRAME[] = {FLAG, A_RECEIVER, C_DISC, A_RECEIVE
 int timeout = FALSE;
 int numTransmissions = 0;
 
-void handleTimeout()
-{
+void handleTimeout(){
 	timeout = TRUE;
+}
 
+void setNextAlarm(){
+	timeout = FALSE;
+	numTransmissions++;
+	alarm(linkInfo.timeout);
+}
+
+void resetAlarm(){
+	numTransmissions = 0;
+	timeout = FALSE;
 }
 
 
@@ -36,6 +45,19 @@ int receiverOpenProtocol(int fd);
 int receiverCloseProtocol(int fd);
 int transmitterCloseProtocol(int fd);
 int readFrame(int fd, char *frame, int status);
+int receiverStateManager(int fd);
+
+int checkCommand(char *frameReceived, const unsigned char *frameExpected){
+	if (sizeof(frameReceived) < COMMAND_LENGTH)
+		return -1;
+
+	int i = 0;
+	for(i = 0; i < COMMAND_LENGTH; i++){
+		if (frameReceived[i] != frameExpected[i])
+			return -2;
+	}
+	return 0;
+}
 
 int openProtocol(struct applicationLayer app){
   linkInfo.baudRate = BAUDRATE;
@@ -47,38 +69,42 @@ int openProtocol(struct applicationLayer app){
 	(void) signal(SIGALRM, handleTimeout);
     return transmitterOpenProtocol(app.fileDescriptor);
   }else if (app.status == RECEIVER){
-    return receiverOpenProtocol(app.fileDescriptor);
+    return receiverStateManager(app.fileDescriptor);
   } else {
     return -1;
   }
 }
 
 int transmitterOpenProtocol(int fd){
-	numTransmissions = 0;
+	resetAlarm();
   do{
 printf("WRITING SET\n");
-  write(fd,SET_FRAME,sizeof(SET_FRAME));
-	timeout = FALSE;
-	numTransmissions++;
-	alarm(linkInfo.timeout);
+  write(fd,SET_FRAME,COMMAND_LENGTH);
+	setNextAlarm();
   printf("WAITING UA\n");
-  }while(readFrame(fd, linkInfo.frame, TRANSMITTER) < 0 && numTransmissions < linkInfo.numTransmissions);
+  }while(readFrame(fd, linkInfo.frame, TRANSMITTER) < 0 && numTransmissions <= linkInfo.numTransmissions);
 	
-	if (numTransmissions >= linkInfo.numTransmissions){
-		printf("The connection with receiver could not be established.");
+	if (numTransmissions > linkInfo.numTransmissions){
+		printf("The connection with receiver could not be established.\n");
 		return -1;
 	} else {
-  		printf("%x:%x:%x:%x:%x\n", linkInfo.frame[0], linkInfo.frame[1], linkInfo.frame[2], linkInfo.frame[3], linkInfo.frame[4]);
+		if (checkCommand(linkInfo.frame, UA_RECEIVER_FRAME) == 0){
+  			//printf("%x:%x:%x:%x:%x\n", linkInfo.frame[0], linkInfo.frame[1], linkInfo.frame[2], linkInfo.frame[3], linkInfo.frame[4]);
   		return 0;
+		} else {
+		printf("Couldn't receive UA\n");
+		return -1;
+		}
 	}
 }
 
 int receiverOpenProtocol(int fd){
   printf("WAITING SET\n");
-  readFrame(fd, linkInfo.frame, RECEIVER);
-  printf("%x:%x:%x:%x:%x\n", linkInfo.frame[0], linkInfo.frame[1], linkInfo.frame[2], linkInfo.frame[3], linkInfo.frame[4]);
-  printf("WRITING UA\n");
-  write(fd,UA_RECEIVER_FRAME,sizeof(UA_RECEIVER_FRAME));
+  do{
+	readFrame(fd, linkInfo.frame, RECEIVER);
+  	printf("WRITING UA\n");
+  	write(fd,UA_RECEIVER_FRAME,COMMAND_LENGTH);
+}while (checkCommand(linkInfo.frame, SET_FRAME) == 0);
   return 0;
 }
 
@@ -102,25 +128,38 @@ int closeProtocol(struct applicationLayer app){
 }
 
 int transmitterCloseProtocol(int fd){
-  printf("WRITING DISC\n");
-  write(fd,DISC_SENDER_FRAME,sizeof(DISC_SENDER_FRAME));
-  printf("vou ler");
-  readFrame(fd, linkInfo.frame, TRANSMITTER);
-  printf("%x:%x:%x:%x:%x\n", linkInfo.frame[0], linkInfo.frame[1], linkInfo.frame[2], linkInfo.frame[3], linkInfo.frame[4]);
-  printf("vou escrever");
-  write(fd,UA_SENDER_FRAME,sizeof(UA_SENDER_FRAME));
+ resetAlarm();
+  do{
+printf("WRITING DISC\n");
+  write(fd,DISC_SENDER_FRAME,COMMAND_LENGTH);
+	setNextAlarm();
+  printf("WAITING DISC\n");
+  }while(readFrame(fd, linkInfo.frame, TRANSMITTER) < 0 && numTransmissions <= linkInfo.numTransmissions);
+	
+	if (numTransmissions > linkInfo.numTransmissions){
+		printf("The connection with receiver could not be established.\n");
+		return -1;
+	} else {
+		if (checkCommand(linkInfo.frame, DISC_RECEIVER_FRAME) == 0){
+  			//printf("%x:%x:%x:%x:%x\n", linkInfo.frame[0], linkInfo.frame[1], linkInfo.frame[2], linkInfo.frame[3], linkInfo.frame[4]);
+			printf("WRITING UA");
+  			write(fd,UA_SENDER_FRAME,COMMAND_LENGTH);
+  		return 0;
+		} else {
+		printf("Couldn't receive DISC\n");
+		return -1;
+		}
+	}
   return 0;
 }
 
 int receiverCloseProtocol(int fd){
-  printf("vou ler");
+  printf("WAITING DISC");
   readFrame(fd, linkInfo.frame, RECEIVER);
-  printf("%x:%x:%x:%x:%x\n", linkInfo.frame[0], linkInfo.frame[1], linkInfo.frame[2], linkInfo.frame[3], linkInfo.frame[4]);
-  printf("vou escrever");
-  write(fd,DISC_RECEIVER_FRAME,sizeof(DISC_RECEIVER_FRAME));
-  printf("vou ler");
+  printf("WRITING DISC");
+  write(fd,DISC_RECEIVER_FRAME,COMMAND_LENGTH);
+  printf("WAITING UA");
   readFrame(fd, linkInfo.frame, RECEIVER);
-  printf("%x:%x:%x:%x:%x\n", linkInfo.frame[0], linkInfo.frame[1], linkInfo.frame[2], linkInfo.frame[3], linkInfo.frame[4]);
   return 0;
 }
 
@@ -192,4 +231,73 @@ int readFrame(int fd, char *frame, int status) {
         }
 
         return i;
+}
+
+int receiverStateManager(int fd) {
+	int triedOnce = FALSE;
+
+	ReceiverState receiverState = RECEIVING_SET;
+
+		
+        while (receiverState != RECEIVING_DONE) {
+				printf("chegeiii\n");
+				printf("%d\n",receiverState);
+                switch(receiverState) {
+                case RECEIVING_SET:
+printf("do belo");
+				   readFrame(fd, linkInfo.frame, RECEIVER);
+				if (checkCommand(linkInfo.frame, SET_FRAME) == 0){
+		  			printf("WRITING UA\n");
+		  			write(fd,UA_RECEIVER_FRAME,COMMAND_LENGTH);
+					triedOnce = TRUE;
+				} else if (triedOnce == TRUE){
+					triedOnce = FALSE;
+					receiverState = RECEIVING_DATA;
+					printf("mudei\n");
+				}
+			break;
+
+                case RECEIVING_DATA:
+printf("do belo");
+					if (checkCommand(linkInfo.frame, DISC_SENDER_FRAME) == 0){
+                        receiverState = RECEIVING_DISC;
+						}
+			//LLREAD
+                        break;
+
+                case RECEIVING_DISC:
+printf("nao mudei de estado lol");
+printf("%x:%x:%x:%x:%x\n", linkInfo.frame[0], linkInfo.frame[1], linkInfo.frame[2], linkInfo.frame[3], linkInfo.frame[4]);
+					if (checkCommand(linkInfo.frame, DISC_SENDER_FRAME) == 0){
+		  				printf("WRITING DISC\n");
+		  				write(fd,DISC_RECEIVER_FRAME,COMMAND_LENGTH);
+						printf("WRITED DISC\n");
+				   		readFrame(fd, linkInfo.frame, RECEIVER);
+printf("%x:%x:%x:%x:%x\n", linkInfo.frame[0], linkInfo.frame[1], linkInfo.frame[2], linkInfo.frame[3], linkInfo.frame[4]);
+					}
+printf("%x:%x:%x:%x:%x\n", linkInfo.frame[0], linkInfo.frame[1], linkInfo.frame[2], linkInfo.frame[3], linkInfo.frame[4]);
+					if (checkCommand(linkInfo.frame, UA_SENDER_FRAME) == 0){
+						receiverState = RECEIVING_UA;
+printf("%x:%x:%x:%x:%x\n", linkInfo.frame[0], linkInfo.frame[1], linkInfo.frame[2], linkInfo.frame[3], linkInfo.frame[4]);
+					}
+					break;
+
+                case RECEIVING_UA:
+return 0;
+printf("do belo");
+						receiverState = RECEIVING_DONE;
+printf("do belo");
+                        break;
+
+case RECEIVING_DONE:
+printf("do belo1");
+	break;
+
+                default:
+printf("do belo2");
+                        break;
+                }
+        }
+
+        return 0;
 }
