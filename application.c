@@ -113,12 +113,12 @@ int llwrite(const char *file){
   startPacket[n++] = (fileInfo.st_size & 0x0000FF00) >> 8;
   startPacket[n++] = (fileInfo.st_size & 0x000000FF);
   printf("%x:%x:%x:%x\n", startPacket[3], startPacket[4], startPacket[5], startPacket[6] & 0xff);
-  printf("%lx\n", fileInfo.st_size);
+  printf("%d\n", fileInfo.st_size);
   startPacket[n++] = T_NAME;
   startPacket[n++] = sizeof(file);
   memcpy(&startPacket[n], file, sizeof(file) + 1);
 
-  //dataWrite(id, startPacket, sizeof(file) + 4 + 10 + 7 + 1);
+  dataWrite(app.fileDescriptor, startPacket, sizeof(file) + 4 + 10 + 7 + 1);
 
   int bytesSent = 0;
   int bytesToSent = 0;
@@ -137,10 +137,14 @@ int llwrite(const char *file){
     packet[2] = (bytesToSent & 0xFF00) >> 8;
     packet[3] = bytesToSent & 0xFF;
 
-    if (read(id,&packet[4],bytesToSent - 4) == bytesToSent){
-
-      if (dataWrite(id, packet, bytesToSent) == 0){
+    if (read(id,&packet[4],bytesToSent - 4) == bytesToSent - 4){
+      int i = 0;
+    for(i = 0; i< sizeof(packet); i++){
+      printf("%x:",packet[i]);
+    }
+      if (dataWrite(app.fileDescriptor, packet, bytesToSent) == 0){
         bytesSent += bytesToSent;
+        packetSequenceNumber++;
       }
     }
       free(packet);
@@ -170,6 +174,7 @@ int llread(char *packet, int length){
             n++;
             char filename[256];
             memcpy(&filename, &packet[n], filenameSize);
+            printf("%c\n",filename);
             imageDescriptor = open(filename, O_WRONLY | O_APPEND);
           }
         }

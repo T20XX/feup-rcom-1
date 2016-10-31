@@ -17,22 +17,15 @@ int main(int argc, char** argv)
       exit(1);
     }
 
-    /*buf[25] = '\n';
-
-    	gets(buf);
-	int tam = strlen(buf)+1;
-	int n;
-	n = write(fd,buf,tam);*/
-
   if (llopen(argv[1], TRANSMITTER) < 0){
     perror("llopen");
 		exit(3);
   }
 
-  // if (llwrite(argv[2]) < 0){
-  //   perror("llwrite");
-	// 	exit(4);
-  // }
+  if (llwrite(argv[2]) < 0){
+    perror("llwrite");
+		exit(4);
+  }
 
   if (llclose() < 0){
     perror("llclose");

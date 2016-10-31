@@ -162,11 +162,17 @@ int dataWrite(int fd, char *packet, int length){
 	resetAlarm();
 	do{
 		printf("WRITING FRAME\n");
-
+		int i = 0;
+for(i = 0; i< sizeof(linkInfo.frame); i++){
+		printf("%x:",linkInfo.frame[i]);
+	}
 		commandIsOk = 1;
 		write(fd,linkInfo.frame,n);
 		setNextAlarm();
+
+			printf("WRITed FRAME\n");
 		readFrame(fd, frameReceived, TRANSMITTER);
+		printf("READESSSS\n");
 
 		if (linkInfo.sequenceNumber == 0)
 		commandIsOk = checkCommand(frameReceived, RR_1_FRAME);
@@ -187,26 +193,30 @@ int dataWrite(int fd, char *packet, int length){
 int dataRead(int length,int fd){
 	int size =destuff(length);
 	int error = FALSE;
-	if(linkInfo.frame[0] == FLAG ||
-		linkInfo.frame[size] == FLAG ||
-		linkInfo.frame[1] == A_SENDER ||
+	if(linkInfo.frame[0] == FLAG &&
+		linkInfo.frame[size-1] == FLAG &&
+		linkInfo.frame[1] == A_SENDER &&
 		//linkInfo.frame[2] == linkInfo.sequenceNumber << 6 ||
 		linkInfo.frame[3] == (linkInfo.frame[1]^linkInfo.frame[2])){
 			int i;
 			unsigned char valbcc2 = 0x00;
-			for(i = 4;i < size-2;i++ ){
-				valbcc2 = linkInfo.frame[i] ^ linkInfo.frame[size-1];
-				if(valbcc2 != (unsigned char)linkInfo.frame[size-2])
-				error = TRUE;
+			printf("header ok\n");
+
+			for(i = 4;i < size-3;i++ ){
+				valbcc2 ^= (unsigned char)linkInfo.frame[i];
 			}
+			printf("%x:%x\n",valbcc2,linkInfo.frame[size-2]);
+			if(valbcc2 != (unsigned char)linkInfo.frame[size-2])
+				error = TRUE;
 		}else error = TRUE;
 
 		if(error == TRUE){
-			if(linkInfo.sequenceNumber ==0)
-			write(fd,REJ_1_FRAME,COMMAND_LENGTH);
+			printf("error\n");
+			if(linkInfo.sequenceNumber ==0) write(fd,REJ_1_FRAME,COMMAND_LENGTH);
 			else write(fd,REJ_0_FRAME,COMMAND_LENGTH);
 			return -1;
 		}else{
+			printf("llread\n");
 			if(llread(&linkInfo.frame[4],size-6)==0){
 				if(linkInfo.sequenceNumber == 0)
 				write(fd,RR_1_FRAME,COMMAND_LENGTH);
@@ -265,6 +275,7 @@ int dataRead(int length,int fd){
 
 		while (state != STOP_RCV) {
 			read(fd, &byte, 1);
+			//printf("%x:",byte);
 
 			switch(state) {
 				case START_RCV:
@@ -336,25 +347,27 @@ int dataRead(int length,int fd){
 			switch(receiverState) {
 				case RECEIVING_SET:
 				printf("Reading SET from transmitter\n");
-				readFrame(fd, linkInfo.frame, RECEIVER);
+				length = readFrame(fd, linkInfo.frame, RECEIVER);
+				printf("%d\n",length);
 				if (checkCommand(linkInfo.frame, SET_FRAME) == 0){
 					printf("Writing UA to transmitter\n");
 					write(fd,UA_RECEIVER_FRAME,COMMAND_LENGTH);
 					triedOnce = TRUE;
-				} else if (triedOnce == TRUE){
+				} else if (triedOnce == TRUE && length > 5){
 					triedOnce = FALSE;
 					receiverState = RECEIVING_DATA;
 				}
 				break;
 
 				case RECEIVING_DATA:
-				length = readFrame(fd, linkInfo.frame, RECEIVER);
 				printf("Receiving Data from transmitter...\n");
+								printf("%d\n",length);
 				if (checkCommand(linkInfo.frame, DISC_SENDER_FRAME) == 0){
 					receiverState = RECEIVING_DISC;
 				}else{
 					dataRead(length,fd);
 				}
+				length = readFrame(fd, linkInfo.frame, RECEIVER);
 				//LLREAD
 				break;
 
@@ -365,7 +378,7 @@ int dataRead(int length,int fd){
 					printf("Writing DISC to transmitter\n");
 					write(fd,DISC_RECEIVER_FRAME,COMMAND_LENGTH);
 					printf("Waiting for UA\n");
-					readFrame(fd, linkInfo.frame, RECEIVER);
+					length = readFrame(fd, linkInfo.frame, RECEIVER);
 					//printf("%x:%x:%x:%x:%x\n", linkInfo.frame[0], linkInfo.frame[1], linkInfo.frame[2], linkInfo.frame[3], linkInfo.frame[4]);
 				}
 				//printf("%x:%x:%x:%x:%x\n", linkInfo.frame[0], linkInfo.frame[1], linkInfo.frame[2], linkInfo.frame[3], linkInfo.frame[4]);
