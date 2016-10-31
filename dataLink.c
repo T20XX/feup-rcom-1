@@ -191,6 +191,10 @@ for(i = 0; i< sizeof(linkInfo.frame); i++){
 }
 
 int dataRead(int length,int fd){
+	int i;
+	for(i = 0; i< length; i++){
+			printf("%x:",linkInfo.frame[i]);
+		}
 	int size =destuff(length);
 	int error = FALSE;
 	if(linkInfo.frame[0] == FLAG &&
@@ -198,7 +202,7 @@ int dataRead(int length,int fd){
 		linkInfo.frame[1] == A_SENDER &&
 		//linkInfo.frame[2] == linkInfo.sequenceNumber << 6 ||
 		linkInfo.frame[3] == (linkInfo.frame[1]^linkInfo.frame[2])){
-			int i;
+			//int i;
 			unsigned char valbcc2 = 0x00;
 			printf("header ok\n");
 

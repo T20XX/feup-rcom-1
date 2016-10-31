@@ -156,32 +156,36 @@ int llwrite(const char *file){
 
 int llread(char *packet, int length){
   int n = 0;
+  printf("%x\n",packet[0]);
   switch(packet[n++]){
     case 1:
       if (packet[n++] == packetSequenceNumber){
+          int size;
+          size = packet[n] * 256 + packet[n+1];
+          n+=2;
+          write(imageDescriptor,&packet[n],size);
 
         packetSequenceNumber++;
       }
       break;
     case 2:
-      if (packet[n++] == packetSequenceNumber){
         if (packet[n] == T_SIZE){
           n++;
           n += packet[n];
+          n++;
           if (packet[n] == T_NAME){
             n++;
             int filenameSize = packet[n];
             n++;
             char filename[256];
             memcpy(&filename, &packet[n], filenameSize);
-            printf("%c\n",filename);
+            printf("%c\n",filename[0]);
             imageDescriptor = open(filename, O_WRONLY | O_APPEND);
           }
         }
-        packetSequenceNumber++;
-      }
       break;
     case 3:
+        close(imageDescriptor);
       break;
     default:
       break;
