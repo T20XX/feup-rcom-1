@@ -12,6 +12,8 @@
 
 struct termios oldtio,newtio;
 
+int packetSequenceNumber = 0;
+
 int llopen(const char *port, int status){
   int fd;
 
@@ -72,6 +74,7 @@ int llwrite(const char *file){
   char per[10];
   char * startPacket;
   int id;
+  int n = 0;
 
   if ( (id = open (file , O_RDONLY)) < 0){
     perror(file);
@@ -100,25 +103,85 @@ int llwrite(const char *file){
 
   startPacket = malloc(sizeof(file) + 4 + 10 + 7 + 1);
   //char *pointer = startPacket;
-  startPacket[0] = 2;
-  startPacket[1] = T_SIZE;
-  startPacket[2] = 4;
+  startPacket[n++] = 2;
+  startPacket[n++] = T_SIZE;
+  startPacket[n++] = 4;
   //memcpy(startPacket[3], &fileInfo.st_size, sizeof(fileInfo.st_size));
-  startPacket[3] = (fileInfo.st_size & 0xFF000000) >> 24;
-  startPacket[4] = (fileInfo.st_size & 0x00FF0000) >> 16;
-  startPacket[5] = (fileInfo.st_size & 0x0000FF00) >> 8;
-  startPacket[6] = (fileInfo.st_size & 0x000000FF);
+  startPacket[n++] = (fileInfo.st_size & 0xFF000000) >> 24;
+  startPacket[n++] = (fileInfo.st_size & 0x00FF0000) >> 16;
+  startPacket[n++] = (fileInfo.st_size & 0x0000FF00) >> 8;
+  startPacket[n++] = (fileInfo.st_size & 0x000000FF);
   printf("%x:%x:%x:%x\n", startPacket[3], startPacket[4], startPacket[5], startPacket[6] & 0xff);
   printf("%lx\n", fileInfo.st_size);
-  startPacket[7] = T_NAME;
-  startPacket[8] = sizeof(file);
-  memcpy(&startPacket[9], file, sizeof(file) + 1);
+  startPacket[n++] = T_NAME;
+  startPacket[n++] = sizeof(file);
+  memcpy(&startPacket[n], file, sizeof(file) + 1);
+
+  //dataWrite(id, startPacket, sizeof(file) + 4 + 10 + 7 + 1);
+
+  int bytesSent = 0;
+  int bytesToSent = 0;
+  char *packet;
+  //fseek(id,0,SEEK_SET);
+
+  while(bytesSent < fileInfo.st_size){
+    if(fileInfo.st_size - bytesSent > DATA_MAX_SIZE){
+      bytesToSent = DATA_MAX_SIZE;
+    } else {
+      bytesToSent = fileInfo.st_size - bytesSent;
+    }
+    packet = (char *) malloc(bytesToSent);
+    packet[0] = 1;
+    packet[1] = packetSequenceNumber % 255;
+    packet[2] = (bytesToSent & 0xFF00) >> 8;
+    packet[3] = bytesToSent & 0xFF;
+
+    if (read(id,&packet[4],bytesToSent - 4) == bytesToSent){
+
+      if (dataWrite(id, packet, bytesToSent) == 0){
+        bytesSent += bytesToSent;
+      }
+    }
+      free(packet);
+  }
+
+
 
   return 0;
 
 }
 
-int llread(){
+int llread(char *packet, int length){
+  int n = 0;
+  switch(packet[n++]){
+    case 1:
+      if (packet[n++] == packetSequenceNumber){
+
+        packetSequenceNumber++;
+      }
+      break;
+    case 2:
+      if (packet[n++] == packetSequenceNumber){
+        if (packet[n] == T_SIZE){
+          n++;
+          n += packet[n];
+          if (packet[n] == T_NAME){
+            n++;
+            int filenameSize = packet[n];
+            n++;
+            char filename[256];
+            memcpy(&filename, &packet[n], filenameSize);
+            imageDescriptor = open(filename, O_WRONLY | O_APPEND);
+          }
+        }
+        packetSequenceNumber++;
+      }
+      break;
+    case 3:
+      break;
+    default:
+      break;
+  }
   return 0;
 }
 
