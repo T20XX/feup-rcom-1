@@ -13,6 +13,7 @@
 struct termios oldtio,newtio;
 
 int packetSequenceNumber = 0;
+int imageDescriptor;
 
 int llopen(const char *port, int status){
   int fd;
@@ -144,8 +145,6 @@ int llwrite(const char *file){
     }
       free(packet);
   }
-
-
 
   return 0;
 
