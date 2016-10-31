@@ -12,6 +12,8 @@
 
 struct termios oldtio,newtio;
 
+int packetSequenceNumber = 0;
+
 int llopen(const char *port, int status){
   int fd;
 
@@ -114,11 +116,52 @@ int llwrite(const char *file){
   startPacket[8] = sizeof(file);
   memcpy(&startPacket[9], file, sizeof(file) + 1);
 
+  int bytesSent = 0;
+  int bytesToSent = 0;
+  char *packet;
+  //fseek(id,0,SEEK_SET);
+
+  while(bytesSent < fileInfo.st_size){
+    if(fileInfo.st_size - bytesSent > DATA_MAX_SIZE){
+      bytesToSent = DATA_MAX_SIZE;
+    } else {
+      bytesToSent = fileInfo.st_size - bytesSent;
+    }
+    packet = (char *) malloc(bytesToSent);
+    packet[0] = 1;
+    packet[1] = packetSequenceNumber % 255;
+    packet[2] = (bytesToSent & 0xFF00) >> 8;
+    packet[3] = bytesToSent & 0xFF;
+
+    if (read(id,&packet[4],bytesToSent - 4) == bytesToSent){
+
+      if (dataWrite(id, packet, bytesToSent) == 0){
+        bytesSent += bytesToSent;
+      }
+    }
+      free(packet);
+  }
+
+
+
   return 0;
 
 }
 
-int llread(){
+int llread(char *packet, int length){
+  switch(packet[0]){
+    case 1:
+      if (packet[1] == packetSequenceNumber){
+        
+      }
+      break;
+    case 2:
+      break;
+    case 3:
+      break;
+    default:
+      break;
+  }
   return 0;
 }
 

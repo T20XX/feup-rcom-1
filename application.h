@@ -21,7 +21,7 @@ struct applicationLayer app;
 
 int llopen(const char *port, int status);
 int llwrite(const char *file);
-int llread();
+int llread(char *packet, int length);
 int llclose();
 
 #endif
