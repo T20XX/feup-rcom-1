@@ -102,7 +102,7 @@ int llwrite(const char *file){
 
   printf("%s\n", per);
 
-  startPacket = malloc(sizeof(file) + 4 + 10 + 7 + 1);
+  startPacket = malloc(strlen(file) + 4 + 10 + 7 + 1);
   //char *pointer = startPacket;
   startPacket[n++] = 2;
   startPacket[n++] = T_SIZE;
@@ -115,8 +115,8 @@ int llwrite(const char *file){
   printf("%x:%x:%x:%x\n", startPacket[3], startPacket[4], startPacket[5], startPacket[6] & 0xff);
   printf("%d\n", fileInfo.st_size);
   startPacket[n++] = T_NAME;
-  startPacket[n++] = sizeof(file);
-  memcpy(&startPacket[n], file, sizeof(file) + 1);
+  startPacket[n++] = strlen(file);
+  memcpy(&startPacket[n], file, strlen(file));
 
   dataWrite(app.fileDescriptor, startPacket, sizeof(file) + 4 + 10 + 7 + 1);
 
@@ -133,7 +133,8 @@ int llwrite(const char *file){
     }
     packet = (char *) malloc(bytesToSent);
     packet[0] = 1;
-    packet[1] = packetSequenceNumber % 255;
+    printf ("\n\n\n\n\n\n\n%d\n\n\n\n\n\n\n\n\n\n", packetSequenceNumber);
+    packet[1] = packetSequenceNumber;
     packet[2] = (bytesToSent & 0xFF00) >> 8;
     packet[3] = bytesToSent & 0xFF;
 

@@ -114,6 +114,7 @@ int receiverOpenProtocol(int fd){
 }
 
 int stuff(char *frame,unsigned char byte){
+	printf("%x:",byte);
 	if(byte == FLAG || byte == ESCAPE){
 		*frame = ESCAPE;
 		frame++;
@@ -163,6 +164,8 @@ int dataWrite(int fd, char *packet, int length){
 	do{
 		printf("WRITING FRAME\n");
 		int i = 0;
+printf("\n\nJÁ DEI STUFF\n\n");
+
 for(i = 0; i< sizeof(linkInfo.frame); i++){
 		printf("%x:",linkInfo.frame[i]);
 	}
