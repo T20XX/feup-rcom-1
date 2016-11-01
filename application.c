@@ -162,11 +162,13 @@ int llread(char *packet, int length){
   printf("%x\n",packet[0]);
   switch(packet[n++]){
     case 1:
+    printf("%x\n",packet[n]);
       if (packet[n++] == packetSequenceNumber){
           int size;
-          size = packet[n] * 256 + packet[n+1];
+          size = (unsigned char)packet[n] * 256 + (unsigned char)packet[n+1];
           n+=2;
-          write(imageDescriptor,&packet[n],size);
+          printf("%d\n",size);
+          write(imageDescriptor,&packet[n],size-4);
 
         packetSequenceNumber++;
       }
@@ -182,8 +184,8 @@ int llread(char *packet, int length){
             n++;
             char filename[256];
             memcpy(&filename, &packet[n], filenameSize);
-            printf("%c\n",filename[0]);
-            imageDescriptor = open(filename, O_WRONLY | O_APPEND);
+            printf("%s\n",filename);
+            imageDescriptor = open(filename, O_WRONLY | O_APPEND | O_CREAT | O_TRUNC);
           }
         }
       break;

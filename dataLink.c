@@ -202,10 +202,16 @@ for(i = 0; i< sizeof(linkInfo.frame); i++){
 
 int dataRead(int length,int fd){
 	int i;
+
 	for(i = 0; i< length; i++){
+			//printf("%x:",linkInfo.frame[i]);
+	}
+	printf("\n\nVOU DAR DESTUFF\n\n:");
+
+	int size =destuff(length);
+	for(i = 0; i< size; i++){
 			printf("%x:",linkInfo.frame[i]);
 		}
-	int size =destuff(length);
 	int error = FALSE;
 	if(linkInfo.frame[0] == FLAG &&
 		linkInfo.frame[size-1] == FLAG &&
@@ -216,7 +222,7 @@ int dataRead(int length,int fd){
 			unsigned char valbcc2 = 0x00;
 			printf("header ok\n");
 
-			for(i = 4;i < size-3;i++ ){
+			for(i = 4;i < size-2;i++){
 				valbcc2 ^= (unsigned char)linkInfo.frame[i];
 			}
 			printf("%x:%x\n",valbcc2,linkInfo.frame[size-2]);
@@ -226,15 +232,20 @@ int dataRead(int length,int fd){
 
 		if(error == TRUE){
 			printf("error\n");
-			if((linkInfo.frame[2] >>6) ==0) write(fd,REJ_1_FRAME,COMMAND_LENGTH);
+			if(linkInfo.frame[2] ==0) write(fd,REJ_1_FRAME,COMMAND_LENGTH);
 			else write(fd,REJ_0_FRAME,COMMAND_LENGTH);
 			return -1;
 		}else{
 			printf("llread\n");
 			if(llread(&linkInfo.frame[4],size-6)==0){
-				if((linkInfo.frame[2] >>6) == 0)
+				if((linkInfo.frame[2] >> 6) == 0){
+				printf("VOU MANDAR UM RR 1\n");
 				write(fd,RR_1_FRAME,COMMAND_LENGTH);
-				else write(fd,RR_0_FRAME,COMMAND_LENGTH);
+			}
+				else{
+					 write(fd,RR_0_FRAME,COMMAND_LENGTH);
+					 printf("VOU MANDAR UM RR 0\n");
+				 }
 				//linkInfo.sequenceNumber = ((linkInfo.sequenceNumber+1)%2);
 			}else return -2;
 		}
