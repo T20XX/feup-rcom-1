@@ -86,8 +86,9 @@ int transmitterOpenProtocol(int fd){
 		write(fd,SET_FRAME,COMMAND_LENGTH);
 		setNextAlarm();
 		printf("Waiting UA from receiver\n");
-	}while(readFrame(fd, linkInfo.frame, TRANSMITTER) < 0 && numTransmissions <= linkInfo.numTransmissions);
 
+	}while(readFrame(fd, linkInfo.frame, TRANSMITTER) < 0 && numTransmissions <= linkInfo.numTransmissions);
+tcflush(fd, TCIOFLUSH);
 	if (numTransmissions > linkInfo.numTransmissions){
 		printf("The connection with receiver could not be established.\n");
 		return -1;
@@ -161,6 +162,9 @@ int dataWrite(int fd, char *packet, int length){
 	char frameReceived[COMMAND_LENGTH];
 	int commandIsOk;
 	resetAlarm();
+	tcflush(fd, TCIOFLUSH);
+
+	write(fd,linkInfo.frame,n);
 	do{
 		printf("WRITING FRAME\n");
 		int i = 0;
@@ -186,7 +190,6 @@ int dataWrite(int fd, char *packet, int length){
 		commandIsOk = checkCommand(frameReceived, RR_0_FRAME);
 		printf("\n\n%d\n\n", commandIsOk);
 
-		//tcflush(fd, TCIOFLUSH);
 
 
 	}while((commandIsOk != 0) && (numTransmissions <= linkInfo.numTransmissions));
