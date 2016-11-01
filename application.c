@@ -150,6 +150,8 @@ int llwrite(const char *file){
     }
       free(packet);
   }
+  char endPacket[] = {3};
+  dataWrite(app.fileDescriptor, endPacket, 1);
 
   return 0;
 

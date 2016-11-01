@@ -56,7 +56,7 @@ int checkCommand(char *frameReceived, const unsigned char *frameExpected){
 
 	int i = 0;
 	for(i = 0; i < COMMAND_LENGTH; i++){
-		if (frameReceived[i] != frameExpected[i])
+		if ((unsigned char)frameReceived[i] != (unsigned char)frameExpected[i])
 		return -2;
 	}
 	return 0;
@@ -176,14 +176,21 @@ for(i = 0; i< sizeof(linkInfo.frame); i++){
 			printf("WRITed FRAME\n");
 		readFrame(fd, frameReceived, TRANSMITTER);
 		printf("READESSSS\n");
+		printf("%x:%x:%x:%x:%x\n", frameReceived[0], frameReceived[1], frameReceived[2], frameReceived[3], frameReceived[4]);
+		printf("%x:%x:%x:%x:%x\n", RR_1_FRAME[0], RR_1_FRAME[1], RR_1_FRAME[2], RR_1_FRAME[3], RR_1_FRAME[4]);
+
 
 		if (linkInfo.sequenceNumber == 0)
 		commandIsOk = checkCommand(frameReceived, RR_1_FRAME);
 		else if (linkInfo.sequenceNumber == 1)
 		commandIsOk = checkCommand(frameReceived, RR_0_FRAME);
+		printf("\n\n%d\n\n", commandIsOk);
 
-	}while((commandIsOk == 0) && (numTransmissions <= linkInfo.numTransmissions));
 
+	}while((commandIsOk != 0) && (numTransmissions <= linkInfo.numTransmissions));
+
+	if(commandIsOk == 0)
+		printf("RECEBI O RR");
 
 	if (numTransmissions > linkInfo.numTransmissions){
 		printf("The connection with receiver could not be established.\n");
@@ -219,16 +226,16 @@ int dataRead(int length,int fd){
 
 		if(error == TRUE){
 			printf("error\n");
-			if(linkInfo.sequenceNumber ==0) write(fd,REJ_1_FRAME,COMMAND_LENGTH);
+			if((linkInfo.frame[2] >>6) ==0) write(fd,REJ_1_FRAME,COMMAND_LENGTH);
 			else write(fd,REJ_0_FRAME,COMMAND_LENGTH);
 			return -1;
 		}else{
 			printf("llread\n");
 			if(llread(&linkInfo.frame[4],size-6)==0){
-				if(linkInfo.sequenceNumber == 0)
+				if((linkInfo.frame[2] >>6) == 0)
 				write(fd,RR_1_FRAME,COMMAND_LENGTH);
 				else write(fd,RR_0_FRAME,COMMAND_LENGTH);
-				linkInfo.sequenceNumber = ((linkInfo.sequenceNumber+1)%2);
+				//linkInfo.sequenceNumber = ((linkInfo.sequenceNumber+1)%2);
 			}else return -2;
 		}
 		return 0;
