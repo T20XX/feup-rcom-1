@@ -114,7 +114,7 @@ int receiverOpenProtocol(int fd){
 }
 
 int stuff(char *frame,unsigned char byte){
-	printf("%x:",byte);
+	//printf("%x:",byte);
 	if(byte == FLAG || byte == ESCAPE){
 		*frame = ESCAPE;
 		frame++;
@@ -164,33 +164,33 @@ int dataWrite(int fd, char *packet, int length){
 	do{
 		printf("WRITING FRAME\n");
 		int i = 0;
-printf("\n\nJÁ DEI STUFF\n\n");
+//printf("\n\nJÁ DEI STUFF\n\n");
 
-for(i = 0; i< sizeof(linkInfo.frame); i++){
-		printf("%x:",linkInfo.frame[i]);
-	}
+// for(i = 0; i< sizeof(linkInfo.frame); i++){
+// 		//printf("%x:",linkInfo.frame[i]);
+// 	}
 		commandIsOk = 1;
 		write(fd,linkInfo.frame,n);
 		setNextAlarm();
 
-			printf("WRITed FRAME\n");
+			//printf("WRITed FRAME\n");
 		readFrame(fd, frameReceived, TRANSMITTER);
-		printf("READESSSS\n");
-		printf("%x:%x:%x:%x:%x\n", frameReceived[0], frameReceived[1], frameReceived[2], frameReceived[3], frameReceived[4]);
-		printf("%x:%x:%x:%x:%x\n", RR_1_FRAME[0], RR_1_FRAME[1], RR_1_FRAME[2], RR_1_FRAME[3], RR_1_FRAME[4]);
+		//printf("READESSSS\n");
+		//printf("%x:%x:%x:%x:%x\n", frameReceived[0], frameReceived[1], frameReceived[2], frameReceived[3], frameReceived[4]);
+		//printf("%x:%x:%x:%x:%x\n", RR_1_FRAME[0], RR_1_FRAME[1], RR_1_FRAME[2], RR_1_FRAME[3], RR_1_FRAME[4]);
 
 
 		if (linkInfo.sequenceNumber == 0)
 		commandIsOk = checkCommand(frameReceived, RR_1_FRAME);
 		else if (linkInfo.sequenceNumber == 1)
 		commandIsOk = checkCommand(frameReceived, RR_0_FRAME);
-		printf("\n\n%d\n\n", commandIsOk);
+		//printf("\n\n%d\n\n", commandIsOk);
 
 
 	}while((commandIsOk != 0) && (numTransmissions <= linkInfo.numTransmissions));
 
-	if(commandIsOk == 0)
-		printf("RECEBI O RR");
+	//if(commandIsOk == 0)
+		//printf("RECEBI O RR");
 
 	if (numTransmissions > linkInfo.numTransmissions){
 		printf("The connection with receiver could not be established.\n");
@@ -203,15 +203,15 @@ for(i = 0; i< sizeof(linkInfo.frame); i++){
 int dataRead(int length,int fd){
 	int i;
 
-	for(i = 0; i< length; i++){
-			//printf("%x:",linkInfo.frame[i]);
-	}
-	printf("\n\nVOU DAR DESTUFF\n\n:");
+	// for(i = 0; i< length; i++){
+	// 		//printf("%x:",linkInfo.frame[i]);
+	// }
+	//printf("\n\nVOU DAR DESTUFF\n\n:");
 
 	int size =destuff(length);
-	for(i = 0; i< size; i++){
-			printf("%x:",linkInfo.frame[i]);
-		}
+	// for(i = 0; i< size; i++){
+	// 		printf("%x:",linkInfo.frame[i]);
+	// 	}
 	int error = FALSE;
 	if(linkInfo.frame[0] == FLAG &&
 		linkInfo.frame[size-1] == FLAG &&
@@ -220,12 +220,12 @@ int dataRead(int length,int fd){
 		linkInfo.frame[3] == (linkInfo.frame[1]^linkInfo.frame[2])){
 			//int i;
 			unsigned char valbcc2 = 0x00;
-			printf("header ok\n");
+			//printf("header ok\n");
 
 			for(i = 4;i < size-2;i++){
 				valbcc2 ^= (unsigned char)linkInfo.frame[i];
 			}
-			printf("%x:%x\n",valbcc2,linkInfo.frame[size-2]);
+			//printf("%x:%x\n",valbcc2,linkInfo.frame[size-2]);
 			if(valbcc2 != (unsigned char)linkInfo.frame[size-2])
 				error = TRUE;
 		}else error = TRUE;
@@ -236,15 +236,15 @@ int dataRead(int length,int fd){
 			else write(fd,REJ_0_FRAME,COMMAND_LENGTH);
 			return -1;
 		}else{
-			printf("llread\n");
+			//printf("llread\n");
 			if(llread(&linkInfo.frame[4],size-6)==0){
 				if((linkInfo.frame[2] >> 6) == 0){
-				printf("VOU MANDAR UM RR 1\n");
+				//printf("VOU MANDAR UM RR 1\n");
 				write(fd,RR_1_FRAME,COMMAND_LENGTH);
 			}
 				else{
 					 write(fd,RR_0_FRAME,COMMAND_LENGTH);
-					 printf("VOU MANDAR UM RR 0\n");
+					 //printf("VOU MANDAR UM RR 0\n");
 				 }
 				//linkInfo.sequenceNumber = ((linkInfo.sequenceNumber+1)%2);
 			}else return -2;
@@ -373,7 +373,7 @@ int dataRead(int length,int fd){
 				case RECEIVING_SET:
 				printf("Reading SET from transmitter\n");
 				length = readFrame(fd, linkInfo.frame, RECEIVER);
-				printf("%d\n",length);
+				//printf("%d\n",length);
 				if (checkCommand(linkInfo.frame, SET_FRAME) == 0){
 					printf("Writing UA to transmitter\n");
 					write(fd,UA_RECEIVER_FRAME,COMMAND_LENGTH);
@@ -386,7 +386,7 @@ int dataRead(int length,int fd){
 
 				case RECEIVING_DATA:
 				printf("Receiving Data from transmitter...\n");
-								printf("%d\n",length);
+								//printf("%d\n",length);
 				if (checkCommand(linkInfo.frame, DISC_SENDER_FRAME) == 0){
 					receiverState = RECEIVING_DISC;
 				}else{
