@@ -84,8 +84,8 @@ int llwrite(const char *file){
 
   //SIZE
   stat(file, &fileInfo);
-  printf("%ld\n", fileInfo.st_size);
-  printf("%ld\n", sizeof(fileInfo.st_mode));
+  //printf("%ld\n", fileInfo.st_size);
+  //printf("%ld\n", sizeof(fileInfo.st_mode));
 
   //PERMISSIONS
   if ( fileInfo.st_mode & S_IRUSR ) per[0] = 'r';    /* 3 bits for user  */
@@ -100,7 +100,7 @@ int llwrite(const char *file){
   if ( fileInfo.st_mode & S_IWOTH ) per[7] = 'w';
   if ( fileInfo.st_mode & S_IXOTH ) per[8] = 'x';
 
-  printf("%s\n", per);
+  //printf("%s\n", per);
 
   startPacket = malloc(strlen(file) + 4 + 10 + 7 + 1);
   //char *pointer = startPacket;
@@ -112,8 +112,8 @@ int llwrite(const char *file){
   startPacket[n++] = (fileInfo.st_size & 0x00FF0000) >> 16;
   startPacket[n++] = (fileInfo.st_size & 0x0000FF00) >> 8;
   startPacket[n++] = (fileInfo.st_size & 0x000000FF);
-  printf("%x:%x:%x:%x\n", startPacket[3], startPacket[4], startPacket[5], startPacket[6] & 0xff);
-  printf("%d\n", fileInfo.st_size);
+  //printf("%x:%x:%x:%x\n", startPacket[3], startPacket[4], startPacket[5], startPacket[6] & 0xff);
+  //printf("%d\n", fileInfo.st_size);
   startPacket[n++] = T_NAME;
   startPacket[n++] = strlen(file);
   memcpy(&startPacket[n], file, strlen(file));
@@ -131,19 +131,19 @@ int llwrite(const char *file){
     } else {
       bytesToSent = fileInfo.st_size - bytesSent;
     }
-    packet = (char *) malloc(bytesToSent);
+    packet = (char *) malloc(bytesToSent + 4);
     packet[0] = 1;
     printf ("\n\n\n\n\n\n\n%d\n\n\n\n\n\n\n\n\n\n", packetSequenceNumber);
     packet[1] = packetSequenceNumber;
-    packet[2] = (bytesToSent & 0xFF00) >> 8;
-    packet[3] = bytesToSent & 0xFF;
+    packet[2] = ((bytesToSent) & 0xFF00) >> 8;
+    packet[3] = (bytesToSent) & 0xFF;
 
-    if (read(id,&packet[4],bytesToSent - 4) == bytesToSent - 4){
+    if (read(id,&packet[4],bytesToSent) == bytesToSent){
       int i = 0;
-    for(i = 0; i< sizeof(packet); i++){
-      printf("%x:",packet[i]);
-    }
-      if (dataWrite(app.fileDescriptor, packet, bytesToSent) == 0){
+    // for(i = 0; i< sizeof(packet); i++){
+    //   printf("%x:",packet[i]);
+    // }
+      if (dataWrite(app.fileDescriptor, packet, bytesToSent + 4) == 0){
         bytesSent += bytesToSent;
         packetSequenceNumber++;
       }
@@ -168,7 +168,7 @@ int llread(char *packet, int length){
           size = (unsigned char)packet[n] * 256 + (unsigned char)packet[n+1];
           n+=2;
           printf("%d\n",size);
-          write(imageDescriptor,&packet[n],size-4);
+          write(imageDescriptor,&packet[n],size);
 
         packetSequenceNumber++;
       }

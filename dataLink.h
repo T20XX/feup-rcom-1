@@ -24,7 +24,8 @@
 #define MAX_SIZE      256
 #define N_TRIES       5
 #define TIMEOUT       3
-#define DATA_MAX_SIZE MAX_SIZE - 6
+#define PACKET_MAX_SIZE MAX_SIZE - 6
+#define DATA_MAX_SIZE PACKET_MAX_SIZE - 4
 
 struct linkLayer {
 int baudRate;/*Velocidade de transmissão*/

@@ -173,9 +173,9 @@ int dataWrite(int fd, char *packet, int length){
 		write(fd,linkInfo.frame,n);
 		setNextAlarm();
 
-			//printf("WRITed FRAME\n");
+			printf("WRITed FRAME\n");
 		readFrame(fd, frameReceived, TRANSMITTER);
-		//printf("READESSSS\n");
+		printf("READESSSS\n");
 		//printf("%x:%x:%x:%x:%x\n", frameReceived[0], frameReceived[1], frameReceived[2], frameReceived[3], frameReceived[4]);
 		//printf("%x:%x:%x:%x:%x\n", RR_1_FRAME[0], RR_1_FRAME[1], RR_1_FRAME[2], RR_1_FRAME[3], RR_1_FRAME[4]);
 
@@ -184,7 +184,9 @@ int dataWrite(int fd, char *packet, int length){
 		commandIsOk = checkCommand(frameReceived, RR_1_FRAME);
 		else if (linkInfo.sequenceNumber == 1)
 		commandIsOk = checkCommand(frameReceived, RR_0_FRAME);
-		//printf("\n\n%d\n\n", commandIsOk);
+		printf("\n\n%d\n\n", commandIsOk);
+
+		//tcflush(fd, TCIOFLUSH);
 
 
 	}while((commandIsOk != 0) && (numTransmissions <= linkInfo.numTransmissions));
@@ -300,7 +302,8 @@ int dataRead(int length,int fd){
 
 		while (state != STOP_RCV) {
 			read(fd, &byte, 1);
-			//printf("%x:",byte);
+			if (byte != 0)
+			printf("%x:",byte);
 
 			switch(state) {
 				case START_RCV:
@@ -308,6 +311,7 @@ int dataRead(int length,int fd){
 					frame[i++] = byte;
 					state = FLAG_RCV;
 				}
+
 				break;
 
 				case FLAG_RCV:
