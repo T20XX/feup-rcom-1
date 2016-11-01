@@ -19,12 +19,12 @@ int main(int argc, char** argv)
 
   if (llopen(argv[1], TRANSMITTER) < 0){
     perror("llopen");
-		exit(3);
+		//exit(3);
   }
 
   if (llwrite(argv[2]) < 0){
     perror("llwrite");
-		exit(4);
+		//exit(4);
   }
 
   if (llclose() < 0){

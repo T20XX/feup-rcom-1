@@ -79,7 +79,35 @@ int openProtocol(struct applicationLayer app){
 }
 
 int transmitterOpenProtocol(int fd){
-	printf("Opening Transmitter Protocol...\n");
+	char frameReceived[COMMAND_LENGTH];
+	int commandIsOk;
+	resetAlarm();
+	tcflush(fd, TCIOFLUSH);
+
+	write(fd,SET_FRAME,COMMAND_LENGTH);
+	do{
+		printf("WRITING FRAME\n");
+		commandIsOk = 1;
+		write(fd,SET_FRAME,COMMAND_LENGTH);
+		setNextAlarm();
+
+			printf("WRITed FRAME\n");
+		readFrame(fd, frameReceived, TRANSMITTER);
+		printf("READESSSS\n");
+
+
+		commandIsOk = checkCommand(frameReceived, UA_RECEIVER_FRAME);
+
+
+
+	}while((commandIsOk != 0) && (numTransmissions <= linkInfo.numTransmissions));
+
+	if (numTransmissions > linkInfo.numTransmissions || commandIsOk  < 0){
+		printf("The connection with receiver could not be established.\n");
+		return -1;
+	}
+	return 0;
+	/*printf("Opening Transmitter Protocol...\n");
 	resetAlarm();
 	do{
 		printf("Writing SET to receiver\n");
@@ -100,7 +128,7 @@ tcflush(fd, TCIOFLUSH);
 			printf("Couldn't receive UA\n");
 			return -1;
 		}
-	}
+	}*/
 }
 
 int receiverOpenProtocol(int fd){
@@ -197,7 +225,7 @@ int dataWrite(int fd, char *packet, int length){
 	//if(commandIsOk == 0)
 		//printf("RECEBI O RR");
 
-	if (numTransmissions > linkInfo.numTransmissions){
+	if (numTransmissions > linkInfo.numTransmissions || commandIsOk  < 0){
 		printf("The connection with receiver could not be established.\n");
 		return -1;
 	}
@@ -269,7 +297,33 @@ int dataRead(int length,int fd){
 	}
 
 	int transmitterCloseProtocol(int fd){
-		printf("Closing Transmitter Protocol...\n");
+		char frameReceived[COMMAND_LENGTH];
+		int commandIsOk;
+		resetAlarm();
+		tcflush(fd, TCIOFLUSH);
+
+		write(fd,DISC_SENDER_FRAME,COMMAND_LENGTH);
+		do{
+			printf("WRITING FRAME\n");
+			commandIsOk = 1;
+			write(fd,DISC_SENDER_FRAME,COMMAND_LENGTH);
+			setNextAlarm();
+
+				printf("WRITed FRAME\n");
+			readFrame(fd, frameReceived, TRANSMITTER);
+			printf("READESSSS\n");
+
+			commandIsOk = checkCommand(frameReceived, DISC_RECEIVER_FRAME);
+
+		}while((commandIsOk != 0) && (numTransmissions <= linkInfo.numTransmissions));
+
+		if (numTransmissions > linkInfo.numTransmissions || commandIsOk  < 0){
+			printf("The connection with receiver could not be established.\n");
+			return -1;
+		}
+		write(fd,UA_SENDER_FRAME,COMMAND_LENGTH);
+		return 0;
+	/*	printf("Closing Transmitter Protocol...\n");
 		resetAlarm();
 		do{
 			printf("Writing DISC to receiver\n");
@@ -292,7 +346,7 @@ int dataRead(int length,int fd){
 				return -1;
 			}
 		}
-		return 0;
+		return 0;*/
 	}
 
 	int readFrame(int fd, char *frame, int status) {
@@ -305,8 +359,8 @@ int dataRead(int length,int fd){
 
 		while (state != STOP_RCV) {
 			read(fd, &byte, 1);
-			if (byte != 0)
-			printf("%x:",byte);
+			//if (byte != 0)
+			//printf("%x:",byte);
 
 			switch(state) {
 				case START_RCV:
@@ -385,6 +439,8 @@ int dataRead(int length,int fd){
 					printf("Writing UA to transmitter\n");
 					write(fd,UA_RECEIVER_FRAME,COMMAND_LENGTH);
 					triedOnce = TRUE;
+				} else if (checkCommand(linkInfo.frame, DISC_SENDER_FRAME) == 0){
+					receiverState = RECEIVING_DISC;
 				} else if (triedOnce == TRUE && length > 5){
 					triedOnce = FALSE;
 					receiverState = RECEIVING_DATA;

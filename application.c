@@ -118,7 +118,9 @@ int llwrite(const char *file){
   startPacket[n++] = strlen(file);
   memcpy(&startPacket[n], file, strlen(file));
 
-  dataWrite(app.fileDescriptor, startPacket, sizeof(file) + 4 + 10 + 7 + 1);
+  if (dataWrite(app.fileDescriptor, startPacket, sizeof(file) + 4 + 10 + 7 + 1) != 0){
+    return -1;
+  }
 
   int bytesSent = 0;
   int bytesToSent = 0;
@@ -146,12 +148,16 @@ int llwrite(const char *file){
       if (dataWrite(app.fileDescriptor, packet, bytesToSent + 4) == 0){
         bytesSent += bytesToSent;
         packetSequenceNumber++;
+      } else {
+        return -1;
       }
     }
       free(packet);
   }
   char endPacket[] = {3};
-  dataWrite(app.fileDescriptor, endPacket, 1);
+  if (dataWrite(app.fileDescriptor, endPacket, 1) != 0){
+    return -1;
+  }
 
   return 0;
 
