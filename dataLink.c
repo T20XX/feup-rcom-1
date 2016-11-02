@@ -185,6 +185,8 @@ int dataWrite(int fd, char *packet, int length){
 // for(i = 0; i< sizeof(linkInfo.frame); i++){
 // 		//printf("%x:",linkInfo.frame[i]);
 // 	}
+//tcflush(fd, TCIOFLUSH);
+
 		commandIsOk = 1;
 		printf("Sending frame...\n");
 		write(fd,linkInfo.frame,n);
@@ -201,10 +203,13 @@ int dataWrite(int fd, char *packet, int length){
 		commandIsOk = checkCommand(frameReceived, RR_0_FRAME);
 		if ((checkCommand(frameReceived, REJ_0_FRAME) == 0) || (checkCommand(frameReceived, REJ_1_FRAME) == 0)){
 			n_rej_frames++;
+			tcflush(fd, TCIOFLUSH);
+			write(fd,linkInfo.frame,n);
+
 			commandIsOk = -3;
 		}
-
-		tcflush(fd, TCIOFLUSH);
+		if (timeout == TRUE);
+		//tcflush(fd, TCIOFLUSH);
 
 		//printf("\n\n%d\n\n", commandIsOk);
 
@@ -298,7 +303,7 @@ int dataRead(int length,int fd){
 		resetAlarm();
 		tcflush(fd, TCIOFLUSH);
 
-		//write(fd,DISC_SENDER_FRAME,COMMAND_LENGTH);
+		write(fd,DISC_SENDER_FRAME,COMMAND_LENGTH);
 		do{
 			commandIsOk = 1;
 			write(fd,DISC_SENDER_FRAME,COMMAND_LENGTH);
