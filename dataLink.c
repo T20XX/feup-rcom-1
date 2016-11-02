@@ -354,6 +354,7 @@ int dataRead(int length,int fd){
 			}
 		}
 		return 0;*/
+		free(linkInfo.frame);
 	}
 
 	int readFrame(int fd, char *frame, int status) {
@@ -489,7 +490,7 @@ int dataRead(int length,int fd){
 				case RECEIVING_UA:
 				printf("UA read from transmitter\n");
 				printf("Closing Receiver Protocol...\n");
-				return 0;
+				//return 0;
 				receiverState = RECEIVING_DONE;
 				break;
 
@@ -500,6 +501,6 @@ int dataRead(int length,int fd){
 				break;
 			}
 		}
-
+		free(linkInfo.frame);
 		return 0;
 	}
