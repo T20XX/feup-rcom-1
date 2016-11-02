@@ -7,6 +7,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <signal.h>
+#include <time.h>
 #include "dataLink.h"
 
 typedef enum { START_RCV, FLAG_RCV, A_RCV, C_RCV, BCC_OK, STOP_RCV } CommandState;
@@ -242,7 +243,8 @@ int dataRead(int length,int fd){
 
 	int size =destuff(length);
 	if ((rand() % 20) < 2){
-		linkInfo.frame[0] == 0xe7;
+		printf("Generated error\n");
+		linkInfo.frame[0] = 0xe7;
 	}
 	// for(i = 0; i< size; i++){
 	// 		printf("%x:",linkInfo.frame[i]);
