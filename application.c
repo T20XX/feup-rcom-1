@@ -14,6 +14,8 @@ struct termios oldtio,newtio;
 
 int packetSequenceNumber = 0;
 int imageDescriptor;
+int bytesRead = 0;
+int bytesTotal = 0;
 
 int llopen(const char *port, int status){
   int fd;
@@ -88,21 +90,21 @@ int llwrite(const char *file){
   //printf("%ld\n", sizeof(fileInfo.st_mode));
 
   //PERMISSIONS
-  if ( fileInfo.st_mode & S_IRUSR ) per[0] = 'r';    /* 3 bits for user  */
-  if ( fileInfo.st_mode & S_IWUSR ) per[1] = 'w';
-  if ( fileInfo.st_mode & S_IXUSR ) per[2] = 'x';
-
-  if ( fileInfo.st_mode & S_IRGRP ) per[3] = 'r';    /* 3 bits for group */
-  if ( fileInfo.st_mode & S_IWGRP ) per[4] = 'w';
-  if ( fileInfo.st_mode & S_IXGRP ) per[5] = 'x';
-
-  if ( fileInfo.st_mode & S_IROTH ) per[6] = 'r';    /* 3 bits for other */
-  if ( fileInfo.st_mode & S_IWOTH ) per[7] = 'w';
-  if ( fileInfo.st_mode & S_IXOTH ) per[8] = 'x';
+  // if ( fileInfo.st_mode & S_IRUSR ) per[0] = 'r';    /* 3 bits for user  */
+  // if ( fileInfo.st_mode & S_IWUSR ) per[1] = 'w';
+  // if ( fileInfo.st_mode & S_IXUSR ) per[2] = 'x';
+  //
+  // if ( fileInfo.st_mode & S_IRGRP ) per[3] = 'r';    /* 3 bits for group */
+  // if ( fileInfo.st_mode & S_IWGRP ) per[4] = 'w';
+  // if ( fileInfo.st_mode & S_IXGRP ) per[5] = 'x';
+  //
+  // if ( fileInfo.st_mode & S_IROTH ) per[6] = 'r';    /* 3 bits for other */
+  // if ( fileInfo.st_mode & S_IWOTH ) per[7] = 'w';
+  // if ( fileInfo.st_mode & S_IXOTH ) per[8] = 'x';
 
   //printf("%s\n", per);
 
-  startPacket = malloc(strlen(file) + 4 + 10 + 7 + 1);
+  startPacket = malloc(strlen(file) + 9);
   //char *pointer = startPacket;
   startPacket[n++] = 2;
   startPacket[n++] = T_SIZE;
@@ -145,7 +147,7 @@ int llwrite(const char *file){
     // for(i = 0; i< sizeof(packet); i++){
     //   printf("%x:",packet[i]);
     // }
-    printf("Sending packet %d\n",packetSequenceNumber);
+    printf("Packet #%d:\n",packetSequenceNumber);
       if (dataWrite(app.fileDescriptor, packet, bytesToSent + 4) == 0){
         bytesSent += bytesToSent;
         packetSequenceNumber++;
@@ -175,9 +177,11 @@ int llread(char *packet, int length){
           int size;
           size = (unsigned char)packet[n] * 256 + (unsigned char)packet[n+1];
           n+=2;
-          printf("Writing packet in fileDescriptor\n");
+          bytesRead += size;
+          //printf("Writing packet in fileDescriptor\n");
           //printf("%d\n",size);
           write(imageDescriptor,&packet[n],size);
+          printf("Packet #%d [%dB/%dB]\n",packetSequenceNumber,bytesRead, bytesTotal);
 
         packetSequenceNumber++;
       }
@@ -185,7 +189,13 @@ int llread(char *packet, int length){
     case 2:
         if (packet[n] == T_SIZE){
           n++;
-          n += packet[n];
+          int filesizeLength = packet[n];
+          int i;
+          for (i = filesizeLength - 1; i >= 0; i--){
+            n++;
+            bytesTotal += (unsigned char)packet[n] << (8*i);
+          }
+          //n += packet[n];
           n++;
           if (packet[n] == T_NAME){
             n++;
