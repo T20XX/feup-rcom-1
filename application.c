@@ -126,7 +126,7 @@ int llwrite(const char *file){
   //printf("%d\n",strlen(file));
   memcpy(&startPacket[n], file, strlen(file));
   printf("Sending startPacket...\n");
-  if (dataWrite(app.fileDescriptor, startPacket, strlen(file) + 9) != 0){
+  if (dataWrite(app.fileDescriptor, startPacket, strlen(file) + 10) != 0){
     return -1;
   }
 
