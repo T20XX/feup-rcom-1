@@ -10,28 +10,36 @@
 
 int main(int argc, char** argv)
 {
-    if ( (argc < 3) ||
-  	     ((strcmp("/dev/ttyS0", argv[1])!=0) &&
-  	      (strcmp("/dev/ttyS1", argv[1])!=0) )) {
-      printf("Usage:\tnserial SerialPort FilePath\n\tex: nserial /dev/ttyS1 ./image.jpg\n");
-      exit(1);
-    }
+  if ( (argc < 3) ||
+  ((strcmp("/dev/ttyS0", argv[1])!=0) &&
+  (strcmp("/dev/ttyS1", argv[1])!=0) )) {
+    printf("Usage:\tnserial SerialPort FilePath\n\tex: nserial /dev/ttyS1 ./image.jpg\n");
+    exit(1);
+  }
+
+  printf("===============================================================\n");
+  printf("=                       FILE SENDER                           =\n");
+  printf("=                          RCOM                               =\n");
+  printf("=                       Transmitter                           =\n");
+  printf("=     António Melo & Margarida Viterbo & Telmo Barros         =\n");
+  printf("===============================================================\n");
+  sleep(1);
 
   if (llopen(argv[1], TRANSMITTER) < 0){
     perror("llopen");
-		//exit(3);
+    //exit(3);
   }
 
   if (llwrite(argv[2]) < 0){
     perror("llwrite");
-		//exit(4);
+    //exit(4);
   }
 
   if (llclose() < 0){
     perror("llclose");
-		exit(5);
+    exit(5);
   }
 
 
-    return 0;
+  return 0;
 }

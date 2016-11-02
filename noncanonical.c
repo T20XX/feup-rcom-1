@@ -8,41 +8,50 @@
 #include "application.h"
 
 int main(int argc, char** argv){
-    if ( (argc < 2) ||
-  	     ((strcmp("/dev/ttyS0", argv[1])!=0) &&
-  	      (strcmp("/dev/ttyS1", argv[1])!=0) )) {
-      printf("Usage:\tnserial SerialPort\n\tex: nserial /dev/ttyS1\n");
-      exit(1);
-    }
+  if ( (argc < 2) ||
+  ((strcmp("/dev/ttyS0", argv[1])!=0) &&
+  (strcmp("/dev/ttyS1", argv[1])!=0) )) {
+    printf("Usage:\tnserial SerialPort\n\tex: nserial /dev/ttyS1\n");
+    exit(1);
+  }
 
-    if (llopen(argv[1], RECEIVER) < 0){
-      perror("llopen");
-  		exit(3);
-    }
+  printf("===============================================================\n");
+  printf("=                       FILE SENDER                           =\n");
+  printf("=                          RCOM                               =\n");
+  printf("=                        Receiver                             =\n");
+  printf("=     António Melo & Margarida Viterbo & Telmo Barros         =\n");
+  printf("===============================================================\n");
+  sleep(1);
 
-    // if (llread() < 0){
-    //   perror("llread");
-  	// 	exit(4);
-    // }
 
-    if (llclose() < 0){
-      perror("llclose");
-  		exit(5);
-    }
+  if (llopen(argv[1], RECEIVER) < 0){
+    perror("llopen");
+    exit(3);
+  }
 
-	// msg[0] = 0;
+  // if (llread() < 0){
+  //   perror("llread");
+  // 	exit(4);
+  // }
+
+  if (llclose() < 0){
+    perror("llclose");
+    exit(5);
+  }
+
+  // msg[0] = 0;
   //   while (STOP==FALSE) {       /* loop for input */
   //     res = read(fd,buf,1);   /* returns after 1 char have been input */
   //     buf[res]=0;               /* so we can printf... */
-	// printf("%s", buf, res);
-	// strcat(msg,buf);
+  // printf("%s", buf, res);
+  // strcat(msg,buf);
   //   if (buf[0]=='\0'){
-	// 	printf("\n", buf, res);
-	// int tam = strlen(msg)+1;
-	// int n;
-	// n = write(fd,msg,tam);
-	// 	STOP=TRUE;
-	// }
+  // 	printf("\n", buf, res);
+  // int tam = strlen(msg)+1;
+  // int n;
+  // n = write(fd,msg,tam);
+  // 	STOP=TRUE;
+  // }
   //   }
-    return 0;
+  return 0;
 }

@@ -117,7 +117,7 @@ int llwrite(const char *file){
   startPacket[n++] = T_NAME;
   startPacket[n++] = strlen(file);
   memcpy(&startPacket[n], file, strlen(file));
-
+  printf("Sending startPacket...\n");
   if (dataWrite(app.fileDescriptor, startPacket, sizeof(file) + 4 + 10 + 7 + 1) != 0){
     return -1;
   }
@@ -135,16 +135,17 @@ int llwrite(const char *file){
     }
     packet = (char *) malloc(bytesToSent + 4);
     packet[0] = 1;
-    printf ("\n\n\n\n\n\n\n%d\n\n\n\n\n\n\n\n\n\n", packetSequenceNumber);
+    //printf ("\n\n\n\n\n\n\n%d\n\n\n\n\n\n\n\n\n\n", packetSequenceNumber);
     packet[1] = packetSequenceNumber;
     packet[2] = ((bytesToSent) & 0xFF00) >> 8;
     packet[3] = (bytesToSent) & 0xFF;
 
     if (read(id,&packet[4],bytesToSent) == bytesToSent){
-      int i = 0;
+      //int i = 0;
     // for(i = 0; i< sizeof(packet); i++){
     //   printf("%x:",packet[i]);
     // }
+    printf("Sending packet %d\n",packetSequenceNumber);
       if (dataWrite(app.fileDescriptor, packet, bytesToSent + 4) == 0){
         bytesSent += bytesToSent;
         packetSequenceNumber++;
@@ -155,6 +156,7 @@ int llwrite(const char *file){
       free(packet);
   }
   char endPacket[] = {3};
+  printf("Sending endPacket\n");
   if (dataWrite(app.fileDescriptor, endPacket, 1) != 0){
     return -1;
   }
@@ -165,15 +167,16 @@ int llwrite(const char *file){
 
 int llread(char *packet, int length){
   int n = 0;
-  printf("%x\n",packet[0]);
+  //printf("%x\n",packet[0]);
   switch(packet[n++]){
     case 1:
-    printf("%x\n",packet[n]);
+    //printf("%x\n",packet[n]);
       if (packet[n++] == packetSequenceNumber){
           int size;
           size = (unsigned char)packet[n] * 256 + (unsigned char)packet[n+1];
           n+=2;
-          printf("%d\n",size);
+          printf("Writing packet in fileDescriptor\n");
+          //printf("%d\n",size);
           write(imageDescriptor,&packet[n],size);
 
         packetSequenceNumber++;
@@ -190,12 +193,14 @@ int llread(char *packet, int length){
             n++;
             char filename[256];
             memcpy(&filename, &packet[n], filenameSize);
-            printf("%s\n",filename);
+            //printf("%s\n",filename);
+            printf("Opening fileDescriptor\n");
             imageDescriptor = open(filename, O_WRONLY | O_APPEND | O_CREAT | O_TRUNC);
           }
         }
       break;
     case 3:
+        printf("Closing fileDescriptor\n");
         close(imageDescriptor);
       break;
     default:
@@ -205,6 +210,7 @@ int llread(char *packet, int length){
 }
 
 int llclose(){
+  printf("Closing Protocol...\n");
   closeProtocol(app);
 
   if ( tcsetattr(app.fileDescriptor,TCSANOW,&oldtio) == -1) {

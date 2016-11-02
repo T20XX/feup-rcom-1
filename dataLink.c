@@ -87,7 +87,7 @@ int transmitterOpenProtocol(int fd){
 	int commandIsOk;
 	resetAlarm();
 	tcflush(fd, TCIOFLUSH);
-
+	printf("Sending SET\n");
 	write(fd,SET_FRAME,COMMAND_LENGTH);
 	do{
 		printf("WRITING FRAME\n");
@@ -101,9 +101,6 @@ int transmitterOpenProtocol(int fd){
 
 
 		commandIsOk = checkCommand(frameReceived, UA_RECEIVER_FRAME);
-
-
-
 	}while((commandIsOk != 0) && (numTransmissions <= linkInfo.numTransmissions));
 
 	if (numTransmissions > linkInfo.numTransmissions || commandIsOk  < 0){
@@ -133,17 +130,6 @@ tcflush(fd, TCIOFLUSH);
 			return -1;
 		}
 	}*/
-}
-
-int receiverOpenProtocol(int fd){
-	printf("Opening Receiver Protocol...\n");
-	printf("Waiting SET from transmitter\n");
-	do{
-		readFrame(fd, linkInfo.frame, RECEIVER);
-		printf("Writing UA to transmitter\n");
-		write(fd,UA_RECEIVER_FRAME,COMMAND_LENGTH);
-	}while (checkCommand(linkInfo.frame, SET_FRAME) == 0);
-	return 0;
 }
 
 int stuff(char *frame,unsigned char byte){
