@@ -32,12 +32,12 @@ int baudRate;/*Velocidade de transmissão*/
 unsigned int sequenceNumber;   /*Número de sequência da trama: 0, 1*/
 unsigned int timeout;/*Valor do temporizador: 1 s*/
 unsigned int numTransmissions; /*Número de tentativas em caso defalha*/
-char frame[2 * MAX_SIZE];/*Trama*/
+char *frame;/*Trama*/
 };
 
 struct linkLayer linkInfo;
 
-int openProtocol(struct applicationLayer app);
+int openProtocol(struct applicationLayer app, int baudRate,int framesize, int noftries, int noftimeout);
 
 int dataWrite(int id, char *packet, int length);
 

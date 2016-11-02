@@ -16,8 +16,10 @@ int packetSequenceNumber = 0;
 int imageDescriptor;
 int bytesRead = 0;
 int bytesTotal = 0;
+int packetMaxSize = 0;
+int dataMaxSize = 0;
 
-int llopen(const char *port, int status){
+int llopen(const char *port, int status, int baudrate, int framesize, int noftries, int noftimeout){
   int fd;
 
   /*
@@ -62,7 +64,10 @@ int llopen(const char *port, int status){
 
   printf("New termios structure set\n");
 
-  if (openProtocol(app) < 0){
+  packetMaxSize = framesize - 6;
+  dataMaxSize = packetMaxSize - 4;
+
+  if (openProtocol(app, baudrate, framesize, noftries, noftimeout) < 0){
     perror("Failed to establish connection");
     exit(-1);
   }
@@ -121,7 +126,7 @@ int llwrite(const char *file){
   //printf("%d\n",strlen(file));
   memcpy(&startPacket[n], file, strlen(file));
   printf("Sending startPacket...\n");
-  if (dataWrite(app.fileDescriptor, startPacket, sizeof(file) + 4 + 10 + 7 + 1) != 0){
+  if (dataWrite(app.fileDescriptor, startPacket, strlen(file) + 9) != 0){
     return -1;
   }
 
@@ -131,8 +136,8 @@ int llwrite(const char *file){
   //fseek(id,0,SEEK_SET);
 
   while(bytesSent < fileInfo.st_size){
-    if(fileInfo.st_size - bytesSent > DATA_MAX_SIZE){
-      bytesToSent = DATA_MAX_SIZE;
+    if(fileInfo.st_size - bytesSent > dataMaxSize){
+      bytesToSent = dataMaxSize;
     } else {
       bytesToSent = fileInfo.st_size - bytesSent;
     }
@@ -208,7 +213,7 @@ int llread(char *packet, int length){
             memcpy(&filename, &packet[n], filenameSize);
             //printf("%s\n",filename);
             printf("Opening fileDescriptor\n");
-            imageDescriptor = open(&packet[n], O_WRONLY | O_APPEND | O_CREAT | O_TRUNC);
+            imageDescriptor = open(&packet[n], O_WRONLY | O_APPEND | O_CREAT | O_TRUNC, S_IRWXU);
           }
         }
       break;

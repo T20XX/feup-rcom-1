@@ -66,11 +66,13 @@ int checkCommand(char *frameReceived, const unsigned char *frameExpected){
 	return 0;
 }
 
-int openProtocol(struct applicationLayer app){
-	linkInfo.baudRate = BAUDRATE;
+int openProtocol(struct applicationLayer app, int baudRate,int framesize, int noftries, int noftimeout){
+	linkInfo.baudRate = baudRate;
 	linkInfo.sequenceNumber = 0;
-	linkInfo.timeout = TIMEOUT;
-	linkInfo.numTransmissions = N_TRIES;
+	linkInfo.timeout = noftimeout;
+	linkInfo.numTransmissions = noftries;
+	linkInfo.frame = malloc(framesize * 2);
+	srand(time(NULL));
 	printf("Opening Protocol...\n");
 	if (app.status == TRANSMITTER){
 		(void) signal(SIGALRM, handleTimeout);
@@ -239,6 +241,9 @@ int dataRead(int length,int fd){
 	//printf("\n\nVOU DAR DESTUFF\n\n:");
 
 	int size =destuff(length);
+	if ((rand() % 20) < 2){
+		linkInfo.frame[0] == 0xe7;
+	}
 	// for(i = 0; i< size; i++){
 	// 		printf("%x:",linkInfo.frame[i]);
 	// 	}
@@ -261,7 +266,7 @@ int dataRead(int length,int fd){
 		}else error = TRUE;
 
 		if(error == TRUE){
-			printf("error\n");
+			printf("Rejected frame\n");
 			if(linkInfo.frame[2] ==0) write(fd,REJ_1_FRAME,COMMAND_LENGTH);
 			else write(fd,REJ_0_FRAME,COMMAND_LENGTH);
 			n_rej_frames++;

@@ -19,7 +19,7 @@ struct applicationLayer {
 
 struct applicationLayer app;
 
-int llopen(const char *port, int status);
+int llopen(const char *port, int status, int baudrate, int framesize, int noftries, int noftimeout);
 int llwrite(const char *file);
 int llread(char *packet, int length);
 int llclose();
