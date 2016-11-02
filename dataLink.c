@@ -210,7 +210,10 @@ int dataWrite(int fd, char *packet, int length){
 
 			commandIsOk = -3;
 		}
-		if (timeout == TRUE);
+		if (timeout == TRUE){
+			tcflush(fd, TCIOFLUSH);
+			write(fd,linkInfo.frame,n);
+		}
 		//tcflush(fd, TCIOFLUSH);
 
 		//printf("\n\n%d\n\n", commandIsOk);
