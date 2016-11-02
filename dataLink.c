@@ -88,16 +88,13 @@ int transmitterOpenProtocol(int fd){
 	resetAlarm();
 	tcflush(fd, TCIOFLUSH);
 	printf("Sending SET\n");
-	write(fd,SET_FRAME,COMMAND_LENGTH);
+	//write(fd,SET_FRAME,COMMAND_LENGTH);
 	do{
-		printf("WRITING FRAME\n");
 		commandIsOk = 1;
 		write(fd,SET_FRAME,COMMAND_LENGTH);
 		setNextAlarm();
 
-			printf("WRITed FRAME\n");
 		readFrame(fd, frameReceived, TRANSMITTER);
-		printf("READESSSS\n");
 
 
 		commandIsOk = checkCommand(frameReceived, UA_RECEIVER_FRAME);
@@ -184,7 +181,6 @@ int dataWrite(int fd, char *packet, int length){
 
 	write(fd,linkInfo.frame,n);
 	do{
-		printf("WRITING FRAME\n");
 		int i = 0;
 //printf("\n\nJÁ DEI STUFF\n\n");
 
@@ -192,13 +188,11 @@ int dataWrite(int fd, char *packet, int length){
 // 		//printf("%x:",linkInfo.frame[i]);
 // 	}
 		commandIsOk = 1;
+		printf("Sending frame...\n");
 		write(fd,linkInfo.frame,n);
 		n_i_frames++;
 		setNextAlarm();
-
-			printf("WRITed FRAME\n");
 		readFrame(fd, frameReceived, TRANSMITTER);
-		printf("READESSSS\n");
 		//printf("%x:%x:%x:%x:%x\n", frameReceived[0], frameReceived[1], frameReceived[2], frameReceived[3], frameReceived[4]);
 		//printf("%x:%x:%x:%x:%x\n", RR_1_FRAME[0], RR_1_FRAME[1], RR_1_FRAME[2], RR_1_FRAME[3], RR_1_FRAME[4]);
 
@@ -215,7 +209,7 @@ int dataWrite(int fd, char *packet, int length){
 			n_timeout++;
 		}
 
-		printf("\n\n%d\n\n", commandIsOk);
+		//printf("\n\n%d\n\n", commandIsOk);
 
 
 
@@ -307,16 +301,12 @@ int dataRead(int length,int fd){
 		resetAlarm();
 		tcflush(fd, TCIOFLUSH);
 
-		write(fd,DISC_SENDER_FRAME,COMMAND_LENGTH);
+		//write(fd,DISC_SENDER_FRAME,COMMAND_LENGTH);
 		do{
-			printf("WRITING FRAME\n");
 			commandIsOk = 1;
 			write(fd,DISC_SENDER_FRAME,COMMAND_LENGTH);
 			setNextAlarm();
-
-				printf("WRITed FRAME\n");
 			readFrame(fd, frameReceived, TRANSMITTER);
-			printf("READESSSS\n");
 
 			commandIsOk = checkCommand(frameReceived, DISC_RECEIVER_FRAME);
 
@@ -421,7 +411,10 @@ int dataRead(int length,int fd){
 				break;
 			}
 
-			if (timeout == TRUE ) return -1;
+			if (timeout == TRUE ){
+				printf("Timeout !!!\n");
+				 return -1;
+			}
 		}
 
 		return i;
@@ -453,7 +446,6 @@ int dataRead(int length,int fd){
 				break;
 
 				case RECEIVING_DATA:
-				printf("Receiving Data from transmitter...\n");
 								//printf("%d\n",length);
 				if (checkCommand(linkInfo.frame, DISC_SENDER_FRAME) == 0){
 					receiverState = RECEIVING_DISC;

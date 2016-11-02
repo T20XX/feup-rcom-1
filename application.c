@@ -14,6 +14,8 @@ struct termios oldtio,newtio;
 
 int packetSequenceNumber = 0;
 int imageDescriptor;
+int bytesRead = 0;
+int bytesTotal = 0;
 
 int llopen(const char *port, int status){
   int fd;
@@ -145,7 +147,7 @@ int llwrite(const char *file){
     // for(i = 0; i< sizeof(packet); i++){
     //   printf("%x:",packet[i]);
     // }
-    printf("Sending packet %d\n",packetSequenceNumber);
+    printf("Packet #%d:\n",packetSequenceNumber);
       if (dataWrite(app.fileDescriptor, packet, bytesToSent + 4) == 0){
         bytesSent += bytesToSent;
         packetSequenceNumber++;
@@ -175,9 +177,11 @@ int llread(char *packet, int length){
           int size;
           size = (unsigned char)packet[n] * 256 + (unsigned char)packet[n+1];
           n+=2;
-          printf("Writing packet in fileDescriptor\n");
+          bytesRead += size;
+          //printf("Writing packet in fileDescriptor\n");
           //printf("%d\n",size);
           write(imageDescriptor,&packet[n],size);
+          printf("Packet #%d [%dkB/%dkB]\n",packetSequenceNumber,bytesRead, bytesTotal);
 
         packetSequenceNumber++;
       }
@@ -185,7 +189,13 @@ int llread(char *packet, int length){
     case 2:
         if (packet[n] == T_SIZE){
           n++;
-          n += packet[n];
+          int filesizeLength = packet[n];
+          int i;
+          for (i = filesizeLength - 1; i >= 0; i--){
+            n++;
+            bytesTotal += (unsigned char)packet[n] << (8*i);
+          }
+          //n += packet[n];
           n++;
           if (packet[n] == T_NAME){
             n++;
