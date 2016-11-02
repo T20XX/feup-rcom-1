@@ -28,6 +28,10 @@ const unsigned char REJ_1_FRAME[] = {FLAG, A_RECEIVER, C_REJ_1, A_RECEIVER^C_REJ
 int timeout = FALSE;
 int numTransmissions = 0;
 
+int n_i_frames = 0;
+int n_timeout = 0;
+int n_rej_frames = 0;
+
 void handleTimeout(){
 	timeout = TRUE;
 }
@@ -203,6 +207,7 @@ int dataWrite(int fd, char *packet, int length){
 // 	}
 		commandIsOk = 1;
 		write(fd,linkInfo.frame,n);
+		n_i_frames++;
 		setNextAlarm();
 
 			printf("WRITed FRAME\n");
@@ -216,6 +221,14 @@ int dataWrite(int fd, char *packet, int length){
 		commandIsOk = checkCommand(frameReceived, RR_1_FRAME);
 		else if (linkInfo.sequenceNumber == 1)
 		commandIsOk = checkCommand(frameReceived, RR_0_FRAME);
+		if ((checkCommand(frameReceived, REJ_0_FRAME) == 0) || (checkCommand(frameReceived, REJ_1_FRAME) == 0)){
+			n_rej_frames++;
+			commandIsOk = -3;
+		}
+		if (timeout == TRUE){
+			n_timeout++;
+		}
+
 		printf("\n\n%d\n\n", commandIsOk);
 
 
@@ -235,6 +248,8 @@ int dataWrite(int fd, char *packet, int length){
 
 int dataRead(int length,int fd){
 	int i;
+
+		n_i_frames++;
 
 	// for(i = 0; i< length; i++){
 	// 		//printf("%x:",linkInfo.frame[i]);
@@ -267,6 +282,7 @@ int dataRead(int length,int fd){
 			printf("error\n");
 			if(linkInfo.frame[2] ==0) write(fd,REJ_1_FRAME,COMMAND_LENGTH);
 			else write(fd,REJ_0_FRAME,COMMAND_LENGTH);
+			n_rej_frames++;
 			return -1;
 		}else{
 			//printf("llread\n");
@@ -286,7 +302,10 @@ int dataRead(int length,int fd){
 	}
 
 	int closeProtocol(struct applicationLayer app){
+		printf("Information Frames: %d\n", n_i_frames);
+		printf("REJ Frames: %d\n", n_rej_frames);
 		if (app.status == TRANSMITTER){
+			printf("Number of timeouts: %d\n", n_timeout);
 			return transmitterCloseProtocol(app.fileDescriptor);
 		}else if (app.status == RECEIVER){
 			//return receiverCloseProtocol(app.fileDescriptor);
