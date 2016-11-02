@@ -98,9 +98,9 @@ int transmitterOpenProtocol(int fd){
 
 
 		commandIsOk = checkCommand(frameReceived, UA_RECEIVER_FRAME);
-	}while((commandIsOk != 0) && (numTransmissions <= linkInfo.numTransmissions));
+	}while((commandIsOk != 0) && (numTransmissions < linkInfo.numTransmissions));
 
-	if (numTransmissions > linkInfo.numTransmissions || commandIsOk  < 0){
+	if (numTransmissions >= linkInfo.numTransmissions || commandIsOk  < 0){
 		printf("The connection with receiver could not be established.\n");
 		return -1;
 	}
@@ -179,7 +179,7 @@ int dataWrite(int fd, char *packet, int length){
 	resetAlarm();
 	write(fd,linkInfo.frame,n);
 	do{
-		int i = 0;
+		//int i = 0;
 //printf("\n\nJÁ DEI STUFF\n\n");
 
 // for(i = 0; i< sizeof(linkInfo.frame); i++){
@@ -193,7 +193,7 @@ int dataWrite(int fd, char *packet, int length){
 		n_i_frames++;
 		setNextAlarm();
 		readFrame(fd, frameReceived, TRANSMITTER);
-		printf("%x:%x:%x:%x:%x\n", frameReceived[0], frameReceived[1], frameReceived[2], frameReceived[3], frameReceived[4]);
+		//printf("%x:%x:%x:%x:%x\n", frameReceived[0], frameReceived[1], frameReceived[2], frameReceived[3], frameReceived[4]);
 		//printf("%x:%x:%x:%x:%x\n", RR_1_FRAME[0], RR_1_FRAME[1], RR_1_FRAME[2], RR_1_FRAME[3], RR_1_FRAME[4]);
 
 
@@ -215,12 +215,12 @@ int dataWrite(int fd, char *packet, int length){
 
 
 
-	}while((commandIsOk != 0) && (numTransmissions <= linkInfo.numTransmissions));
+	}while((commandIsOk != 0) && (numTransmissions < linkInfo.numTransmissions));
 
 	//if(commandIsOk == 0)
 		//printf("RECEBI O RR");
 
-	if (numTransmissions > linkInfo.numTransmissions || commandIsOk  < 0){
+	if (numTransmissions >= linkInfo.numTransmissions || commandIsOk  < 0){
 		printf("The connection with receiver could not be established.\n");
 		return -1;
 	}
@@ -312,9 +312,9 @@ int dataRead(int length,int fd){
 
 			commandIsOk = checkCommand(frameReceived, DISC_RECEIVER_FRAME);
 
-		}while((commandIsOk != 0) && (numTransmissions <= linkInfo.numTransmissions));
+		}while((commandIsOk != 0) && (numTransmissions < linkInfo.numTransmissions));
 
-		if (numTransmissions > linkInfo.numTransmissions || commandIsOk  < 0){
+		if (numTransmissions >= linkInfo.numTransmissions || commandIsOk  < 0){
 			printf("The connection with receiver could not be established.\n");
 			return -1;
 		}

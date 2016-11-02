@@ -74,7 +74,7 @@ int llwrite(const char *file){
   struct stat fileInfo;
 
   //struct dirent *dp;
-  char per[10];
+  //char per[10];
   char * startPacket;
   int id;
   int n = 0;
@@ -118,7 +118,7 @@ int llwrite(const char *file){
   //printf("%d\n", fileInfo.st_size);
   startPacket[n++] = T_NAME;
   startPacket[n++] = strlen(file);
-  printf("%d\n",strlen(file));
+  //printf("%d\n",strlen(file));
   memcpy(&startPacket[n], file, strlen(file));
   printf("Sending startPacket...\n");
   if (dataWrite(app.fileDescriptor, startPacket, sizeof(file) + 4 + 10 + 7 + 1) != 0){
