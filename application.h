@@ -15,7 +15,6 @@ struct applicationLayer {
 #define T_DATE 2
 #define T_PERMISSIONS 3
 
-//volatile int STOP=FALSE;
 
 struct applicationLayer app;
 

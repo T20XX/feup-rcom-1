@@ -31,29 +31,9 @@ int main(int argc, char** argv){
     exit(3);
   }
 
-  // if (llread() < 0){
-  //   perror("llread");
-  // 	exit(4);
-  // }
-
   if (llclose() < 0){
     perror("llclose");
     exit(5);
   }
-
-  // msg[0] = 0;
-  //   while (STOP==FALSE) {       /* loop for input */
-  //     res = read(fd,buf,1);   /* returns after 1 char have been input */
-  //     buf[res]=0;               /* so we can printf... */
-  // printf("%s", buf, res);
-  // strcat(msg,buf);
-  //   if (buf[0]=='\0'){
-  // 	printf("\n", buf, res);
-  // int tam = strlen(msg)+1;
-  // int n;
-  // n = write(fd,msg,tam);
-  // 	STOP=TRUE;
-  // }
-  //   }
   return 0;
 }
